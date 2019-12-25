@@ -8,8 +8,6 @@ import requests
 import tmdbsimple as tmdb
 import transmissionrpc
 
-from scrapers import pirateproxy, _1377x
-
 # movies = list()
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -30,7 +28,12 @@ transmission = transmissionrpc.Client(address=TRANSMISSION_ADDRESS,
                                       password=TRANSMISSION_PASSWORD)
 
 LOG_PATH = config['DEFAULT']['MANUAL_ADD_LOG_PATH']
-SCRAPER_PREFERENCE = [_1377x, pirateproxy]
+SCRAPER_PREFERENCE = list()
+
+scraper_strings = config['DEFAULT']['SCRAPER_PREFERENCE'].replace(' ', '').split(',')
+
+for scraper in scraper_strings:
+    SCRAPER_PREFERENCE.append(eval(scraper))
 
 
 # with open('/home/platelminto/Documents/tv/top100movies', 'r') as f:
