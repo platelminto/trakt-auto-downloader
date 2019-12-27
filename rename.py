@@ -14,8 +14,9 @@ config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini'
 
 TV_PATH = config['TV_SHOWS']['MAIN_PATH']
 TV_COMPLETED_PATH = config['TV_SHOWS']['COMPLETED_PATH']
-MOVIE_COMPLETED_PATH = config['MOVIES']['COMPLETED_PATH']
 MOVIE_PATH = config['MOVIES']['MAIN_PATH']
+MOVIE_COMPLETED_PATH = config['MOVIES']['COMPLETED_PATH']
+DEFAULT_COMPLETED_PATH = config['DEFAULT']['COMPLETED_PATH']
 
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
@@ -101,16 +102,15 @@ def main():
         except FileNotFoundError as e:
             logging.error('{}: {} - {}', title, year, e)
     else:
-        print('download dir wrong, adding to generic completed')
+        print('download dir {} unknown, adding {} to generic completed at {}'.format(
+            path, filename, DEFAULT_COMPLETED_PATH))
+        logging.warning('download dir {} unknown, adding {} to generic completed at {}'.format(
+            path, filename, DEFAULT_COMPLETED_PATH))
 
 
 def get_movie_details(filename):
     info = PTN.parse(filename)
     return info['title'], info.get('year', '')
-
-
-def is_tv(filename):
-    return 'season' in PTN.parse(filename)
 
 
 def get_episode_details(path):
