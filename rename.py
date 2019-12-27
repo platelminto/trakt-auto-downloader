@@ -27,7 +27,7 @@ def main():
     path = sys.argv[1]
     filename = sys.argv[2]
 
-    if is_tv(filename):
+    if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
                             level=logging.INFO, format='%(asctime)s %(message)s')
         show, season, episode = '', 0, 0
@@ -75,7 +75,7 @@ def main():
             logging.error('{} s{}e{}: {}'.format(show, season, episode, e))
         except TypeError:
             pass
-    else:
+    elif path == MOVIE_COMPLETED_PATH:
         logging.basicConfig(filename=MOVIE_LOG_PATH, filemode='a+',
                             level=logging.INFO, format='%(asctime)s %(message)s')
         title, year = '', 0
@@ -100,6 +100,8 @@ def main():
             logging.error('{}: {}'.format(title, e))
         except FileNotFoundError as e:
             logging.error('{}: {} - {}', title, year, e)
+    else:
+        print('download dir wrong, adding to generic completed')
 
 
 def get_movie_details(filename):
