@@ -70,10 +70,11 @@ def main():
                     os.mkdir(season_folder)
 
                 shutil.move(os.path.join(path, filename), os.path.join(season_folder, rename))
-                # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
-                if path != TV_COMPLETED_PATH:
-                    shutil.rmtree(path)
                 logging.info('Added {} as {} in {}'.format(filename, rename, season_folder))
+
+            # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
+            if path != TV_COMPLETED_PATH:
+                shutil.rmtree(path)
 
         except RuntimeError as e:
             print('{} s{}e{}: {}'.format(show, season, episode, e))
@@ -146,7 +147,7 @@ def get_episode_details(path):
 
     episodes = list()
 
-    for r in rows:
+    for r in rows.fetchall():
         episodes.append((r[0], r[1], r[2], r[3]))
         c.execute('''DELETE FROM episode_info
                      WHERE show = ? AND season = ? AND episode = ? 

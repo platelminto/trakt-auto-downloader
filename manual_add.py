@@ -82,17 +82,8 @@ def get_info(query, media_type, show_options=False):
     }
 
 
-def get_episode_list(show_id, season_number):
-    results = tmdb.TV_Seasons(show_id, season_number).info()
-
-
 def get_episode_name(show_id, season, episode):
     return tmdb.TV_Episodes(series_id=show_id, season_number=season, episode_number=episode).info()['name']
-
-
-def season_search(title, season):
-    return '{} complete s{:02}'.format(title, season) \
-        .replace('.', '').replace('\'', '')
 
 
 def get_torrent_name(added_torrent):
@@ -105,19 +96,36 @@ def get_torrent_name(added_torrent):
     return transmission_torrent._fields['name'].value
 
 
-def search_torrent(title, options=5):
-    for scraper in SCRAPER_PREFERENCE:
-        try:
-            return scraper.scrape(title, options)
-        except LookupError:
-            logging.warning('{} had no results for {}'.format(scraper.name, title))
-            print('{} had no results for {}'.format(scraper.name, title))
-        except requests.exceptions.Timeout:
-            logging.warning('{} timed out for {}'.format(scraper.name, title))
-            print('{} timed out for {}'.format(scraper.name, title))
+def search_torrent(searches, options=5, use_all_scrapers=False):
+    if not use_all_scrapers:
+        for scraper in SCRAPER_PREFERENCE:
+            try:
+                return scraper.scrape(searches, options)
+            except LookupError:
+                logging.warning('{} had no results for {}'.format(scraper.name, searches))
+                print('{} had no results for {}'.format(scraper.name, searches))
+            except requests.exceptions.Timeout:
+                logging.warning('{} timed out for {}'.format(scraper.name, searches))
+                print('{} timed out for {}'.format(scraper.name, searches))
+    else:
+        titles, texts, magnets = list(), list(), list()
+        for scraper in SCRAPER_PREFERENCE:
+            try:
+                current_titles, current_texts, current_magnets = scraper.scrape(searches, int(options / len(SCRAPER_PREFERENCE)))
+                titles += current_titles
+                texts += current_texts
+                magnets += current_magnets
+            except LookupError:
+                logging.warning('{} had no results for {}'.format(scraper.name, searches))
+                print('{} had no results for {}'.format(scraper.name, searches))
+            except requests.exceptions.Timeout:
+                logging.warning('{} timed out for {}'.format(scraper.name, searches))
+                print('{} timed out for {}'.format(scraper.name, searches))
+        if len(magnets) > 0:
+            return titles, texts, magnets
 
-    logging.error('no magnets found for {}'.format(title))
-    print('no magnets found for {}'.format(title))
+    logging.error('no magnets found for {}'.format(searches))
+    print('no magnets found for {}'.format(searches))
     quit(1)
 
 
@@ -134,7 +142,7 @@ def add_magnet(magnet, media_type):
 
 def add_tv_episode(show_search, season, episode, options=1):
     formatted_search = '{} s{:02}e{:02}'.format(show_search, season, episode)
-    torrent = add_magnet(find_magnet(formatted_search, options), MediaType.EPISODE)
+    torrent = add_magnet(find_magnet([formatted_search], options), MediaType.EPISODE)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     episode_name = get_episode_name(show['id'], season, episode)
@@ -143,7 +151,8 @@ def add_tv_episode(show_search, season, episode, options=1):
 
 
 def add_season(show_search, season, options=1):
-    torrent = add_magnet(find_magnet(show_search, options), MediaType.SEASON)
+    formatted_search = '{} s{:02}'.format(show_search, season)
+    torrent = add_magnet(find_magnet([formatted_search], options), MediaType.SEASON)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     results = tmdb.TV_Seasons(show['id'], season).info()
@@ -159,7 +168,7 @@ def add_season(show_search, season, options=1):
 
 
 def add_movie(movie_search, options=1):
-    torrent = add_magnet(find_magnet(movie_search, options), MediaType.MOVIE)
+    torrent = add_magnet(find_magnet([movie_search], options), MediaType.MOVIE)
 
     movie = get_info(movie_search, MediaType.MOVIE, options > 1)
     year = movie['release_date'].year.numerator
@@ -167,16 +176,18 @@ def add_movie(movie_search, options=1):
     add_to_movie_db(torrent, movie['name'], year)
 
 
-def find_magnet(query, options=1):
-    query = query.replace('.', '').replace('\'', '')
+def find_magnet(queries, options=1, use_all_scrapers=False):
+    sanitised_queries = list()
+    for query in queries:
+        sanitised_queries.append(query.replace('.', '').replace('\'', ''))
 
-    titles, texts, magnets = search_torrent(query, options)
+    titles, texts, magnets = search_torrent(sanitised_queries, options, use_all_scrapers)
 
     try:
         selected_torrent_title, selected_magnet = titles[0], magnets[0]
     except IndexError:
-        print('Invalid search \'{}\''.format(query))
-        logging.error('Invalid search \'{}\''.format(query))
+        print('Invalid search \'{}\''.format(queries))
+        logging.error('Invalid search \'{}\''.format(queries))
         quit(1)
 
     if options > 1:
@@ -223,7 +234,7 @@ def add_season_to_tv_db(final_torrent_name, show, season, episodes_with_names):
     db = sqlite3.connect(DATABASE_PATH)
     for (episode, name) in episodes_with_names:
         db.cursor().execute(
-            '''INSERT OR IGNORE INTO episode_info 
+            '''INSERT OR REPLACE INTO episode_info 
                VALUES(?, ?, ?, ?, ?)
                ''',
             (final_torrent_name, show, season, episode, name))
@@ -240,13 +251,13 @@ def is_int(s):
 
 
 def main():
-    option = input('(m)ovie or (tv) show: ').lower()
+    option = input('(m)ovie, (tv) show, or (d)irect search: ').lower()
 
     if option == 'm' or option == 'movie':
         title = input('Search for: ')
         add_movie(title, options=5)
 
-    else:
+    elif option == 'tv' or option == 't' or option == 'tv show':
         show = input('Show name: ')
         season_s = input('Season: ')
         if is_int(season_s):
@@ -257,6 +268,10 @@ def main():
                 add_tv_episode(show, season, episode, options=5)
             elif episode_s.lower() == 'all' or episode_s.lower() == 'complete':
                 add_season(show, season, options=10)
+    elif option == 'd' or option == 'direct' or option == 'direct search':
+        query = input('Search for: ')
+        options = int(input('Number of options: '))
+        find_magnet([query], options=options, use_all_scrapers=True)
 
 
 class MediaType(Enum):
