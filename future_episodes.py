@@ -8,7 +8,7 @@ import feedparser
 # cron daily (could be even rare tbh)
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
 FEED_URL = config['DEFAULT']['TRAKT_FEED_URL']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']

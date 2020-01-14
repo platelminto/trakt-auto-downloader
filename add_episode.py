@@ -4,14 +4,14 @@ import sqlite3
 
 import PTN
 
-from manual_add import add_magnet, search_torrent, get_torrent_name
+from manual_add import add_magnet, search_torrent, get_torrent_name, MediaType
 
 # cron every hour
 
 debug = False
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
 PREFERRED_QUALITY = config['TV_SHOWS']['PREFERRED_QUALITY']
 AIRED_DELAY = config['TV_SHOWS']['AIRED_DELAY']
@@ -32,7 +32,7 @@ def main():
         search = row[0]
         torrent_name = add_and_get_torrent(search)
 
-        c.execute('''INSERT OR IGNORE INTO available 
+        c.execute('''INSERT OR IGNORE INTO episode_info 
                      SELECT ?, show, season, episode, title FROM releases
                      WHERE search = ?
                      ''', (torrent_name, search))
@@ -47,15 +47,17 @@ def main():
 
 def add_and_get_torrent(title):
     titles, _, magnets = search_torrent(title, 3)
+    magnet_to_add = magnets[0]
 
     for current_title, magnet in zip(titles, magnets):
         # When preferring quality over search, different (usually previous) episodes might get selected,
         # so we check for this.
         if PREFERRED_QUALITY in current_title and \
                 get_episode_info(title) == get_episode_info(current_title):
-            return get_torrent_name(add_magnet(magnet, True))
+            magnet_to_add = magnet
+            break
 
-    return get_torrent_name(add_magnet(magnets[0], True))
+    return get_torrent_name(add_magnet(magnet_to_add, MediaType.EPISODE))
 
 
 def get_episode_info(filename):

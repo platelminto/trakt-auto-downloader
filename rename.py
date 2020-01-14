@@ -27,49 +27,53 @@ MOVIE_LOG_PATH = config['MOVIES']['LOG_PATH']
 def main():
     path = sys.argv[1]
     filename = sys.argv[2]
+    # path = '/home/platelminto/Documents/tv/completed tv shows/'
+    # filename = 'The.Witcher.S01.COMPLETE.720p.NF.WEBRip.x264-GalaxyTV[TGx]'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
                             level=logging.INFO, format='%(asctime)s %(message)s')
         show, season, episode = '', 0, 0
         try:
-            path, filename, is_folder = find_video(path, filename)
+            path, filenames, is_folder = find_videos(path, filename)
+            episodes = list()
             if is_folder:
-                show, season, episode, title = get_episode_details(path)
+                episodes = get_episode_details(path)
             else:
-                show, season, episode, title = get_episode_details(filename)
+                episodes.append(get_episode_details(filename)[0])
 
-            rename = '{}x{:02d} - {}{}'.format(season, episode, title, os.path.splitext(filename)[1])
+            for ((show, season, episode, title), filename) in zip(episodes, filenames):
+                rename = '{}x{:02d} - {}{}'.format(season, episode, title, os.path.splitext(filename)[1])
 
-            found, show_folder = False, ''
+                found, show_folder = False, ''
 
-            for cur_show in os.listdir(TV_PATH):
-                if cur_show.lower() == show.lower():
-                    show_folder = os.path.join(TV_PATH, cur_show)
-                    found = True
-                    continue
+                for cur_show in os.listdir(TV_PATH):
+                    if cur_show.lower() == show.lower():
+                        show_folder = os.path.join(TV_PATH, cur_show)
+                        found = True
+                        break
 
-            if not found:
-                show_folder = os.path.join(TV_PATH, show)
-                os.mkdir(show_folder)
+                if not found:
+                    show_folder = os.path.join(TV_PATH, show)
+                    os.mkdir(show_folder)
 
-            found, season_folder = False, ''
+                found, season_folder = False, ''
 
-            for s in os.listdir(show_folder):
-                if s == 's{}'.format(season):
-                    season_folder = os.path.join(show_folder, s)
-                    found = True
-                    continue
+                for s in os.listdir(show_folder):
+                    if s == 's{}'.format(season):
+                        season_folder = os.path.join(show_folder, s)
+                        found = True
+                        break
 
-            if not found:
-                season_folder = os.path.join(show_folder, 's{}'.format(season))
-                os.mkdir(season_folder)
+                if not found:
+                    season_folder = os.path.join(show_folder, 's{}'.format(season))
+                    os.mkdir(season_folder)
 
-            shutil.move(os.path.join(path, filename), os.path.join(season_folder, rename))
-            # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
-            if path != TV_COMPLETED_PATH:
-                shutil.rmtree(path)
-            logging.info('Added {} as {} in {}'.format(filename, rename, season_folder))
+                shutil.move(os.path.join(path, filename), os.path.join(season_folder, rename))
+                # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
+                if path != TV_COMPLETED_PATH:
+                    shutil.rmtree(path)
+                logging.info('Added {} as {} in {}'.format(filename, rename, season_folder))
 
         except RuntimeError as e:
             print('{} s{}e{}: {}'.format(show, season, episode, e))
@@ -81,9 +85,9 @@ def main():
                             level=logging.INFO, format='%(asctime)s %(message)s')
         title, year = '', 0
         try:
-            path, filename = find_video(MOVIE_COMPLETED_PATH, filename)
+            path, filenames, in_folder = find_videos(MOVIE_COMPLETED_PATH, filename)
+            filename = filenames[0]
 
-            path, filename, in_folder = find_video(path, filename)
             if in_folder:
                 # Capitalisation is usually correct in folder name but not always on the file itself
                 title, year = get_movie_details(os.path.basename(os.path.normpath(path)))
@@ -108,15 +112,10 @@ def main():
             path, filename, DEFAULT_COMPLETED_PATH))
 
 
-def get_movie_details(filename):
-    info = PTN.parse(filename)
-    return info['title'], info.get('year', '')
-
-
-def get_episode_details(path):
+def get_movie_details(path):
     db = sqlite3.connect(DATABASE_PATH)
     c = db.cursor()
-    rows = c.execute('''SELECT show, season, episode, title, torrent_name FROM available
+    rows = c.execute('''SELECT movie_name, year, torrent_name FROM movie_info
                         WHERE torrent_name = ?
                         ''', (os.path.basename(os.path.normpath(path)),))
 
@@ -126,25 +125,56 @@ def get_episode_details(path):
         print('Could not find info for {}'.format(path))
         return
     else:
-        c.execute('''DELETE FROM available
+        c.execute('''DELETE FROM movie_info
                      WHERE torrent_name = ?
-                     ''', (r[4],))
+                     ''', (r[2],))
         db.commit()
         db.close()
-        return r[0], r[1], r[2], r[3]
+        return r[0], r[1]
 
 
-def find_video(path, filename):
+def get_episode_details(path):
+    db = sqlite3.connect(DATABASE_PATH)
+    c = db.cursor()
+    rows = c.execute('''SELECT show, season, episode, title, torrent_name FROM episode_info
+                        WHERE torrent_name = ?
+                        ''', (os.path.basename(os.path.normpath(path)),))
+
+    if rows.arraysize < 1:
+        logging.error('Could not find info for {}'.format(path))
+        print('Could not find info for {}'.format(path))
+
+    episodes = list()
+
+    for r in rows:
+        episodes.append((r[0], r[1], r[2], r[3]))
+        c.execute('''DELETE FROM episode_info
+                     WHERE show = ? AND season = ? AND episode = ? 
+                     AND title = ? AND torrent_name = ?
+                     ''', (r[0], r[1], r[2], r[3], r[4],))
+    db.commit()
+    db.close()
+
+    return episodes
+
+
+def find_videos(path, filename):
     if os.path.isfile(os.path.join(path, filename)):
-        return path, filename, False
+        return path, [filename], False
 
     path = os.path.join(path, filename)
 
     time.sleep(2)
 
-    filename = max(map(lambda x: (x, os.path.getsize(os.path.join(path, x))), os.listdir(path)), key=lambda s: s[1])[0]
+    filenames = list()
 
-    return path, filename, True
+    for _, _, files in os.walk(path):
+        for file in files:
+            if file.endswith('.mkv') or file.endswith('.mp4') or file.endswith('avi') \
+                    or file.endswith('mov') or file.endswith('flv') or file.endswith('wmv'):
+                filenames.append(file)
+
+    return path, filenames, True
 
 
 if __name__ == '__main__':
