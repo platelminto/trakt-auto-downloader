@@ -61,6 +61,9 @@ def scrape(searches, options=5, timeout=4):
                     magnets.append(get_magnet_from_torrent(a['href'], timeout))
                     limit -= 1
 
+        if len(titles) == 0:
+            raise LookupError
+
     return titles, texts, magnets
 
 

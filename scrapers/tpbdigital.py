@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-name = 'pirateproxy.llc'
+name = 'tpb.digital'
 
 
 def scrape(searches, options=5, timeout=6):
@@ -14,7 +14,7 @@ def scrape(searches, options=5, timeout=6):
     limit = options
 
     for title in searches:
-        url = 'https://pirateproxy.llc/search/' + title + '/0/99/0'
+        url = 'https://tpb.digital/search/' + title + '/0/99/0'
         response = requests.get(url, timeout=timeout)
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -22,7 +22,7 @@ def scrape(searches, options=5, timeout=6):
 
         y = soup.findAll('font')
         for f in y:
-            if limit > 0 and (f.text not in texts):
+            if limit > 0 and (f.text not in texts) and 'ULed by piratebay' not in f.text :
                 texts.append(f.text)
                 limit -= 1
 

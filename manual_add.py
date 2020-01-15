@@ -8,7 +8,7 @@ import datetime
 import requests
 import tmdbsimple as tmdb
 import transmissionrpc
-from scrapers import _1377x, pirateproxy
+from scrapers import _1377x, tpbdigital
 
 # movies = list()
 config = configparser.ConfigParser()

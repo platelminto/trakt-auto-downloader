@@ -7,7 +7,6 @@ import shutil
 import logging
 import configparser
 
-import PTN
 
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
@@ -28,7 +27,7 @@ def main():
     path = sys.argv[1]
     filename = sys.argv[2]
     # path = '/home/platelminto/Documents/tv/completed tv shows/'
-    # filename = 'The.Witcher.S01.COMPLETE.720p.NF.WEBRip.x264-GalaxyTV[TGx]'
+    # filename = 'DCs.Legends.of.Tomorrow.S05E01.720p.HDTV.x265-MiNX[TGx]'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
