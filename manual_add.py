@@ -55,6 +55,12 @@ def get_info(query, media_type, show_options=False):
 
     result = results[0]
 
+    title = ''
+    if media_type == MediaType.TV_SHOW:
+        title = 'name'
+    else:
+        title = 'title'
+
     if len(results) > 1 and show_options:
         # If popularity is very different, just pick the first
         if results[0]['popularity'] > results[1]['popularity'] * 10:
@@ -62,7 +68,7 @@ def get_info(query, media_type, show_options=False):
         else:
             print('What result is this?')
             for i in range(min(5, len(results))):
-                print('{}) Name: {}\t Overview: {}\tPopularity: {}\t{}'.format(i + 1, results[i]['name'],
+                print('{}) Name: {}\t Overview: {}\tPopularity: {}\t{}'.format(i + 1, results[i][title],
                                                                                results[i]['overview'],
                                                                                results[i]['popularity'], results[i]))
                 print()
