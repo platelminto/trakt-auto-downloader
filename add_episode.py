@@ -46,7 +46,7 @@ def main():
 
 
 def add_and_get_torrent(title):
-    titles, _, magnets = search_torrent(title, 3)
+    titles, _, magnets = search_torrent([title], 3)
     magnet_to_add = magnets[0]
 
     for current_title, magnet in zip(titles, magnets):
