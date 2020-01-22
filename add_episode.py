@@ -28,8 +28,11 @@ def main():
                         WHERE datetime(airs) <= datetime('now', ?)
                         ''', ('-' + AIRED_DELAY,))
 
+    searches = list()
     for row in rows:
-        search = row[0]
+        searches.append(row[0])
+
+    for search in searches:
         torrent_name = add_and_get_torrent(search)
 
         c.execute('''INSERT OR IGNORE INTO episode_info 
