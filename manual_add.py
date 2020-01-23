@@ -8,6 +8,8 @@ import datetime
 import requests
 import tmdbsimple as tmdb
 import transmissionrpc
+
+from media_type import MediaType
 from scrapers import _1377x, tpbdigital
 
 # movies = list()
@@ -37,14 +39,6 @@ scraper_strings = config['DEFAULT']['SCRAPER_PREFERENCE'].replace(' ', '').split
 
 for scraper in scraper_strings:
     SCRAPER_PREFERENCE.append(eval(scraper))
-
-
-class MediaType(Enum):
-    MOVIE = 1
-    EPISODE = 2
-    SEASON = 3
-    TV_SHOW = 4
-    ANY = 5
 
 
 # with open('/home/platelminto/Documents/tv/top100movies', 'r') as f:

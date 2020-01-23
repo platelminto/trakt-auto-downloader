@@ -3,7 +3,7 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 
-from manual_add import MediaType
+from media_type import MediaType
 
 name = '1377x.to'
 
