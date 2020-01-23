@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}{% endblock %} - Hello Flask!</title>
+  <link type="text/css" rel="stylesheet"
+       href="{{ url_for('static',
+                        filename='hello.css')}}" />
+  <link type="text/css" rel="stylesheet"
+       href="{{ url_for('static',
+                        filename='bootstrap.min.css')}}" />
+  <script src="{{ url_for('static',
+                        filename='jquery-3.4.1.min.js')}}"></script>
+  <script src="{{ url_for('static',
+                        filename='bootstrap.min.js')}}"></script>
+
+</head>
+<body>
+
+{% block body %}{% endblock %}
+
+</body>
+</html>

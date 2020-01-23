@@ -1,0 +1,25 @@
+{% extends "master.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<div class="btn-group" data-toggle="buttons">
+  <label class="btn btn-primary active">
+    <input type="radio" name="options" id="option1" checked> Movie
+  </label>
+  <label class="btn btn-primary">
+    <input type="radio" name="options" id="option2"> TV Show
+  </label>
+  <label class="btn btn-primary">
+    <input type="radio" name="options" id="option3"> Direct Search
+  </label>
+</div>
+<form method="POST">
+    Search:
+    <input type="text" name="search">
+    <input type="submit">
+</form>
+{% for option in options %}
+    <div><p>{{option.title}}: {{option.text}}</p></div>
+{% endfor %}
+{% endblock %}
