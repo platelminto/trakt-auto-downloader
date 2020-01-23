@@ -3,18 +3,20 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 
+from manual_add import MediaType
 
 name = 'tpb.digital'
 
 
-def scrape(searches, options=5, timeout=6):
+def scrape(searches, media_type=MediaType.ANY, options=5, timeout=6):
     magnets = list()
     titles = list()
     texts = list()
     limit = options
 
     for title in searches:
-        url = 'https://tpb.digital/search/' + title + '/0/99/0'
+        # Cannot specify past 'Video' without having to choose HD - TV Shows or just TV Shows
+        url = 'https://tpb.digital/search/' + title + '/0/99/200'
         response = requests.get(url, timeout=timeout)
 
         soup = BeautifulSoup(response.text, "html.parser")

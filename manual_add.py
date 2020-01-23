@@ -39,6 +39,14 @@ for scraper in scraper_strings:
     SCRAPER_PREFERENCE.append(eval(scraper))
 
 
+class MediaType(Enum):
+    MOVIE = 1
+    EPISODE = 2
+    SEASON = 3
+    TV_SHOW = 4
+    ANY = 5
+
+
 # with open('/home/platelminto/Documents/tv/top100movies', 'r') as f:
 #     for line in f:
 #         movies.append(line.strip().replace('\'', ''))
@@ -55,7 +63,6 @@ def get_info(query, media_type, show_options=False):
 
     result = results[0]
 
-    title = ''
     if media_type == MediaType.TV_SHOW:
         title = 'name'
     else:
@@ -102,11 +109,11 @@ def get_torrent_name(added_torrent):
     return transmission_torrent._fields['name'].value
 
 
-def search_torrent(searches, options=5, use_all_scrapers=False):
+def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrapers=False):
     if not use_all_scrapers:
         for scraper in SCRAPER_PREFERENCE:
             try:
-                return scraper.scrape(searches, options)
+                return scraper.scrape(searches, media_type, options)
             except LookupError:
                 logging.warning('{} had no results for {}'.format(scraper.name, searches))
                 print('{} had no results for {}'.format(scraper.name, searches))
@@ -117,7 +124,7 @@ def search_torrent(searches, options=5, use_all_scrapers=False):
         titles, texts, magnets = list(), list(), list()
         for scraper in SCRAPER_PREFERENCE:
             try:
-                current_titles, current_texts, current_magnets = scraper.scrape(searches, int(options / len(SCRAPER_PREFERENCE)))
+                current_titles, current_texts, current_magnets = scraper.scrape(searches, media_type, int(options / len(SCRAPER_PREFERENCE)))
                 titles += current_titles
                 texts += current_texts
                 magnets += current_magnets
@@ -148,7 +155,7 @@ def add_magnet(magnet, media_type):
 
 def add_tv_episode(show_search, season, episode, options=1):
     formatted_search = '{} s{:02}e{:02}'.format(show_search, season, episode)
-    torrent = add_magnet(find_magnet([formatted_search], options), MediaType.EPISODE)
+    torrent = add_magnet(find_magnet([formatted_search], MediaType.EPISODE, options), MediaType.EPISODE)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     episode_name = get_episode_name(show['id'], season, episode)
@@ -158,7 +165,7 @@ def add_tv_episode(show_search, season, episode, options=1):
 
 def add_season(show_search, season, options=1):
     formatted_search = '{} s{:02}'.format(show_search, season)
-    torrent = add_magnet(find_magnet([formatted_search], options), MediaType.SEASON)
+    torrent = add_magnet(find_magnet([formatted_search], MediaType.SEASON, options), MediaType.SEASON)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     results = tmdb.TV_Seasons(show['id'], season).info()
@@ -174,7 +181,7 @@ def add_season(show_search, season, options=1):
 
 
 def add_movie(movie_search, options=1):
-    torrent = add_magnet(find_magnet([movie_search], options), MediaType.MOVIE)
+    torrent = add_magnet(find_magnet([movie_search], MediaType.MOVIE, options), MediaType.MOVIE)
 
     movie = get_info(movie_search, MediaType.MOVIE, options > 1)
     year = movie['release_date'].year.numerator
@@ -182,12 +189,12 @@ def add_movie(movie_search, options=1):
     add_to_movie_db(torrent, movie['name'], year)
 
 
-def find_magnet(queries, options=1, use_all_scrapers=False):
+def find_magnet(queries, media_type=MediaType.ANY, options=1, use_all_scrapers=False):
     sanitised_queries = list()
     for query in queries:
         sanitised_queries.append(query.replace('.', '').replace('\'', ''))
 
-    titles, texts, magnets = search_torrent(sanitised_queries, options, use_all_scrapers)
+    titles, texts, magnets = search_torrent(sanitised_queries, media_type, options, use_all_scrapers)
 
     try:
         selected_torrent_title, selected_magnet = titles[0], magnets[0]
@@ -278,13 +285,6 @@ def main():
         query = input('Search for: ')
         options = int(input('Number of options: '))
         find_magnet([query], options=options, use_all_scrapers=True)
-
-
-class MediaType(Enum):
-    MOVIE = 1
-    EPISODE = 2
-    SEASON = 3
-    TV_SHOW = 4
 
 
 if __name__ == '__main__':

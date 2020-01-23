@@ -3,6 +3,8 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 
+from manual_add import MediaType
+
 name = '1377x.to'
 
 
@@ -19,14 +21,20 @@ def get_magnet_from_torrent(torrent, timeout):
             return a['href']
 
 
-def scrape(searches, options=5, timeout=4):
+def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
     magnets = list()
     titles = list()
     texts = list()
     limit = options
 
     for title in searches:
-        url = 'https://www.1377x.to/search/' + urllib.parse.quote_plus(title) + '/1/'
+        url = ''
+        if media_type == MediaType.ANY:
+            url = 'https://www.1377x.to/search/' + urllib.parse.quote_plus(title) + '/1/'
+        elif media_type == MediaType.SEASON or media_type == MediaType.EPISODE or media_type == MediaType.TV_SHOW:
+            url = 'https://www.1377x.to/category-search/' + urllib.parse.quote_plus(title) + '/TV/1/'
+        elif media_type == MediaType.MOVIE:
+            url = 'https://www.1377x.to/category-search/' + urllib.parse.quote_plus(title) + '/Movies/1/'
 
         response = requests.get(url, timeout=timeout)
         soup = BeautifulSoup(response.text, "html.parser")
