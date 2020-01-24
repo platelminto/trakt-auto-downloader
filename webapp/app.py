@@ -19,10 +19,10 @@ def search():
 def search_post():
     query = flask.request.form['search']
 
-    titles, texts, magnets = search_torrent([query], 5)
+    results = search_torrent([query], 5)
 
     options = list()
-    for title, text, magnet in zip(titles, texts, magnets):
+    for title, text, magnet in [(r.title, r.info_string(), r.magnet) for r in results]:
         options.append({
             'title': title,
             'text': text,

@@ -2,7 +2,6 @@ import configparser
 import logging
 import sqlite3
 import time
-from enum import Enum
 import datetime
 
 import requests
@@ -115,21 +114,19 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
                 logging.warning('{} timed out for {}'.format(scraper.name, searches))
                 print('{} timed out for {}'.format(scraper.name, searches))
     else:
-        titles, texts, magnets = list(), list(), list()
+        results = list()
         for scraper in SCRAPER_PREFERENCE:
             try:
-                current_titles, current_texts, current_magnets = scraper.scrape(searches, media_type, int(options / len(SCRAPER_PREFERENCE)))
-                titles += current_titles
-                texts += current_texts
-                magnets += current_magnets
+                current_results = scraper.scrape(searches, media_type, int(options / len(SCRAPER_PREFERENCE)))
+                results += current_results
             except LookupError:
                 logging.warning('{} had no results for {}'.format(scraper.name, searches))
                 print('{} had no results for {}'.format(scraper.name, searches))
             except requests.exceptions.Timeout:
                 logging.warning('{} timed out for {}'.format(scraper.name, searches))
                 print('{} timed out for {}'.format(scraper.name, searches))
-        if len(magnets) > 0:
-            return titles, texts, magnets
+        if len(results) > 0:
+            return results
 
     logging.error('no magnets found for {}'.format(searches))
     print('no magnets found for {}'.format(searches))
@@ -188,19 +185,19 @@ def find_magnet(queries, media_type=MediaType.ANY, options=1, use_all_scrapers=F
     for query in queries:
         sanitised_queries.append(query.replace('.', '').replace('\'', ''))
 
-    titles, texts, magnets = search_torrent(sanitised_queries, media_type, options, use_all_scrapers)
+    results = search_torrent(sanitised_queries, media_type, options, use_all_scrapers)
 
     try:
-        selected_torrent_title, selected_magnet = titles[0], magnets[0]
+        selected_torrent_title, selected_magnet = results[0].title, results[0].magnet
     except IndexError:
         print('Invalid search \'{}\''.format(queries))
         logging.error('Invalid search \'{}\''.format(queries))
         quit(1)
 
     if options > 1:
-        for i in range(min(options, len(titles))):
-            print('{} {}'.format(i + 1, titles[i]))
-            print(texts[i])
+        for i in range(min(options, len(results))):
+            print('{} {}'.format(i + 1, results[i].title))
+            print(results[i].info_string())
             print()
 
         torrent = int(input('Select a link (0 to abort): '))
@@ -208,7 +205,7 @@ def find_magnet(queries, media_type=MediaType.ANY, options=1, use_all_scrapers=F
         if torrent == 0:
             quit(0)
 
-        selected_torrent_title, selected_magnet = titles[torrent - 1], magnets[torrent - 1]
+        selected_torrent_title, selected_magnet = results[torrent - 1].title, results[torrent - 1].magnet
 
         print('Selecting {}'.format(selected_torrent_title))
 

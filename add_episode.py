@@ -50,10 +50,10 @@ def main():
 
 
 def add_and_get_torrent(title):
-    titles, _, magnets = search_torrent([title], MediaType.EPISODE, 3)
-    magnet_to_add = magnets[0]
+    results = search_torrent([title], MediaType.EPISODE, 3)
+    magnet_to_add = results[0].magnet
 
-    for current_title, magnet in zip(titles, magnets):
+    for current_title, magnet in [(r.title, r.magnet) for r in results]:
         # When preferring quality over search, different (usually previous) episodes might get selected,
         # so we check for this.
         if PREFERRED_QUALITY in current_title and \

@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from media_type import MediaType
+from scrapers.search_result import SearchResult
 
 name = '1377x.to'
 
@@ -22,10 +23,10 @@ def get_magnet_from_torrent(torrent, timeout):
 
 
 def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
-    magnets = list()
-    titles = list()
-    texts = list()
     limit = options
+    results = list()
+    for _ in range(options * len(searches)):
+        results.append(SearchResult())
 
     for title in searches:
         url = ''
@@ -40,40 +41,38 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
         soup = BeautifulSoup(response.text, "html.parser")
 
         y = soup.findAll('td')
-        generating_text = list()
         for td in y:
+            current_result = results[options - limit]
             if limit > 0:
                 if 'coll-2' in td['class']:
-                    generating_text.append('seeders {}'.format(td.contents[0]))
+                    current_result.seeders = td.contents[0]
                 if 'coll-3' in td['class']:
-                    generating_text.append('leechers {}'.format(td.contents[0]))
+                    current_result.leechers = td.contents[0]
                 if 'coll-date' in td['class']:
-                    generating_text.append(str(td.contents[0]))
+                    current_result.date = str(td.contents[0])
                 if 'coll-4' in td['class']:
-                    generating_text.append(str(td.contents[0]))
+                    current_result.size = str(td.contents[0])
                 if 'coll-5' in td['class']:
-                    generating_text.append(str(td.next.contents[0]))
-                    final_text = '  '.join(generating_text)
-                    if final_text not in texts:
-                        texts.append(final_text)
-                        limit -= 1
-                    generating_text.clear()
+                    current_result.uploader = str(td.next.contents[0])
+                    limit -= 1
 
         x = soup.findAll('a')
         limit = options
 
         for a in x:
             if limit > 0:
-                if a['href'].startswith('/torrent/') and a.contents[0] not in titles:
-                    titles.append(a.contents[0])
-                    magnets.append(get_magnet_from_torrent(a['href'], timeout))
+                current_result = results[options - limit]
+                if a['href'].startswith('/torrent/') and a.contents[0] not in [r.title for r in results]:
+                    current_result.title = a.contents[0]
+                    current_result.magnet = get_magnet_from_torrent(a['href'], timeout)
                     limit -= 1
 
-        if len(titles) == 0:
+        if results[0].title == '':
             raise LookupError
 
-    return titles, texts, magnets
+    return results
 
 
 if __name__ == '__main__':
-    scrape('The Mandalorian s01e04')
+    search = input('Search for: ')
+    print(scrape([search]))
