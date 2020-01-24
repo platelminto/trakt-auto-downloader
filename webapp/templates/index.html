@@ -3,22 +3,41 @@
 {% block title %}Home{% endblock %}
 
 {% block body %}
+
 <div class="btn-group" data-toggle="buttons">
-  <label class="btn btn-primary active">
-    <input type="radio" name="options" id="option1" checked> Movie
+  <label class="btn btn-primary active" id="movie-option">
+    <input type="radio" name="options" checked> Movie
   </label>
-  <label class="btn btn-primary">
-    <input type="radio" name="options" id="option2"> TV Show
+  <label class="btn btn-primary" id="tv-option">
+    <input type="radio" name="options"> TV Show
   </label>
-  <label class="btn btn-primary">
-    <input type="radio" name="options" id="option3"> Direct Search
+  <label class="btn btn-primary" id="direct-option">
+    <input type="radio" name="options"> Direct Search
   </label>
 </div>
-<form method="POST">
+
+<div>
+<form method="POST" id="movie-search">
+    Movie:
+    <input type="text" name="movie">
+    <input type="submit" title="Submit">
+</form>
+<form method="POST" id="tv-search">
+    Show:
+    <input type="text" name="show">
+    Season:
+    <input type="text" name="season">
+    Episode:
+    <input type="text" name="episode">
+    <input type="submit">
+</form>
+<form method="POST" id="direct-search">
     Search:
     <input type="text" name="search">
     <input type="submit">
 </form>
+</div>
+
 {% for option in options %}
     <div><p>{{option.title}}: {{option.text}}</p></div>
 {% endfor %}
