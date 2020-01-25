@@ -4,7 +4,7 @@ import sqlite3
 
 import PTN
 
-from manual_add import add_magnet, search_torrent, get_torrent_name
+from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
 from media_type import MediaType
 
 # cron every hour
