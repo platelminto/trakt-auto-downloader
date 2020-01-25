@@ -13,6 +13,8 @@ import transmissionrpc
 from media_type import MediaType
 from scrapers import _1377x, tpbdigital
 
+# TODO refactor torrent stuff into other file
+
 # movies = list()
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
