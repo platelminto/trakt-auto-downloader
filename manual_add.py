@@ -6,6 +6,8 @@ import datetime
 
 import requests
 import tmdbsimple as tmdb
+from trakt.users import User
+from trakt.tv import TVShow
 import transmissionrpc
 
 from media_type import MediaType
@@ -20,6 +22,7 @@ TV_COMPLETED_PATH = config['TV_SHOWS']['COMPLETED_PATH']
 MOVIE_COMPLETED_PATH = config['MOVIES']['COMPLETED_PATH']
 GENERIC_COMPLETED_PATH = config['DEFAULT']['COMPLETED_PATH']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
+TRAKT_USERNAME = config['TRAKT']['USERNAME']
 
 TRANSMISSION_ADDRESS = config['TRANSMISSION']['ADDRESS']
 TRANSMISSION_PORT = int(config['TRANSMISSION']['PORT'])
@@ -272,10 +275,33 @@ def main():
                 add_tv_episode(show, season, episode, options=5)
             elif episode_s.lower() == 'all' or episode_s.lower() == 'complete':
                 add_season(show, season, options=10)
+        prompt_add_to_trakt(show)
+
     elif option == 'd' or option == 'direct' or option == 'direct search':
         query = input('Search for: ')
         options = int(input('Number of options: '))
         find_magnet([query], options=options, use_all_scrapers=True)
+
+
+def prompt_add_to_trakt(show):
+    me = User(TRAKT_USERNAME)
+    show = get_info(show, MediaType.TV_SHOW, True)['name']
+    if show.lower() not in [show.title.lower() for show in me.watched_shows]:
+        add_to_trakt = input('Add to trakt (y/n): ').lower()
+        if add_to_trakt == 'y' or add_to_trakt == 'ye' or add_to_trakt == 'yes':
+            show_search = TVShow.search(show)
+            trakt_show = show_search[0]
+            if len(show_search) > 1:
+                for i, result in show_search:
+                    print('{} {}'.format(i + 1, show_search.title))
+                    print()
+
+                show_option = int(input('Select a show (0 to abort): '))
+                if show_option == 0:
+                    quit(0)
+                trakt_show = show_search[show_option - 1]
+
+            trakt_show.add_to_library()
 
 
 if __name__ == '__main__':

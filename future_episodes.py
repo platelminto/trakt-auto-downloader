@@ -10,7 +10,7 @@ import feedparser
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
-FEED_URL = config['DEFAULT']['TRAKT_FEED_URL']
+FEED_URL = config['TRAKT']['FEED_URL']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
 LOG_PATH = config['TV_SHOWS']['LOG_PATH']
