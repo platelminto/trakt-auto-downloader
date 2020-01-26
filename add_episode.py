@@ -12,7 +12,7 @@ from media_type import MediaType
 debug = False
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
 PREFERRED_QUALITY = config['TV_SHOWS']['PREFERRED_QUALITY']
 AIRED_DELAY = config['TV_SHOWS']['AIRED_DELAY']

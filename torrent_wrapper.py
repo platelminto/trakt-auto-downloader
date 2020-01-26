@@ -9,7 +9,7 @@ from media_type import MediaType
 from scrapers import _1377x, tpbdigital
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
 TV_COMPLETED_PATH = config['TV_SHOWS']['COMPLETED_PATH']
 MOVIE_COMPLETED_PATH = config['MOVIES']['COMPLETED_PATH']

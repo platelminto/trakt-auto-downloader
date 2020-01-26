@@ -10,7 +10,7 @@ import configparser
 import PTN
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
 TV_PATH = config['TV_SHOWS']['MAIN_PATH']
 TV_COMPLETED_PATH = config['TV_SHOWS']['COMPLETED_PATH']
