@@ -69,7 +69,7 @@ def get_torrent_name(added_torrent):
     transmission_torrent = transmission.get_torrent(torrent_id=added_torrent._fields['id'].value)
     size = 0
     while size == 0:  # When sizeWhenDone is no longer 0, the torrent's final name is present.
-        time.sleep(2)
+        time.sleep(0.5)
         transmission_torrent = transmission.get_torrent(torrent_id=added_torrent._fields['id'].value)
         size = transmission_torrent._fields['sizeWhenDone'].value
     return transmission_torrent._fields['name'].value

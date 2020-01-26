@@ -25,10 +25,10 @@ MOVIE_LOG_PATH = config['MOVIES']['LOG_PATH']
 
 
 def main():
-    # path = sys.argv[1]
-    # filename = sys.argv[2]
-    path = '/home/platelminto/Documents/tv/completed tv shows/'
-    filename = 'Scrubs Seasons 1-9 DVDRip'
+    path = sys.argv[1]
+    filename = sys.argv[2]
+    # path = '/home/platelminto/Documents/tv/completed tv shows/'
+    # filename = 'Scrubs Seasons 1-9 DVDRip'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
@@ -44,6 +44,7 @@ def main():
 
             for show, season, episode, title in episodes:
                 try:
+                    # Find the file that matches this season & episode
                     filepath = [fp for fp in filepaths if (season, episode) == parsed_info(fp)][0]
                 except IndexError:
                     continue
