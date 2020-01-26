@@ -28,7 +28,7 @@ def main():
     path = sys.argv[1]
     filename = sys.argv[2]
     # path = '/home/platelminto/Documents/tv/completed tv shows/'
-    # filename = 'Scrubs Seasons 1-9 DVDRip'
+    # filename = 'Black.Mirror.S01-S04.1080p.WEBRip.x265.HEVC-MRN'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',

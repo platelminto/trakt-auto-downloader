@@ -88,9 +88,18 @@ def add_tv_episode(show_search, season, episode, options=1):
 def add_season(show_search, season, options=1):
     formatted_search = '{} s{:02}'.format(show_search, season)
     # Complete individual seasons can be hard to find outside of a larger pack,
-    # so we also look for the show itself
+    # so we also look for the show itself to find those
     torrent = add_magnet(find_magnet([formatted_search, show_search], MediaType.SEASON, options), MediaType.SEASON)
 
+    return add_seasons(show_search, torrent, options)
+
+
+def add_show(show_search, options=1):
+    torrent = add_magnet(find_magnet([show_search], MediaType.TV_SHOW, options), MediaType.TV_SHOW)
+
+    return add_seasons(show_search, torrent, options)
+
+def add_seasons(show_search, torrent, options=1):
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     parsed = PTN.parse(get_torrent_name(torrent))
     seasons = list()
@@ -98,15 +107,13 @@ def add_season(show_search, season, options=1):
         seasons_input = input('What seasons does this download include? ')
         if '-' in seasons_input:
             input_split = seasons_input.strip().split('-')
-            seasons.extend(range(int(input_split[0]), int(input_split[1])+1))
+            seasons.extend(range(int(input_split[0]), int(input_split[1]) + 1))
         else:
             seasons.extend([int(s) for s in re.compile('[ ,]').split(seasons_input) if s != ''])
     elif not isinstance(parsed['season'], list):
-        seasons.append(season)
+        seasons.append(parsed['season'])
     else:
-        for s in parsed['season']:
-            seasons.append(s)
-
+        seasons.extend(parsed['season'])
     for season in seasons:
         results = tmdb.TV_Seasons(show['id'], season).info()
         episodes_with_names = list()
@@ -116,7 +123,6 @@ def add_season(show_search, season, options=1):
             episodes_with_names.append((episode_number, episode_name))
 
         add_season_to_tv_db(get_torrent_name(torrent), show['name'], season, episodes_with_names)
-
     return seasons
 
 
@@ -180,16 +186,24 @@ def main():
 
     elif option == 'tv' or option == 't' or option == 'tv show':
         show = input('Show name: ')
-        season_s = input('Season: ')
+        season_s = input('Season: ').lower()
         if is_int(season_s):
             season = int(season_s)
-            episode_s = input('Episode: ')
+            episode_s = input('Episode: ').lower()
             if is_int(episode_s):
                 episode = int(episode_s)
                 add_tv_episode(show, season, episode, options=5)
-            elif episode_s.lower() == 'all' or episode_s.lower() == 'complete':
+            elif episode_s == 'all' or episode_s == 'complete':
                 seasons = add_season(show, season, options=10)
                 print('Added seasons: {}'.format(seasons))
+            else:
+                print('Invalid query')
+                quit(1)
+        elif season_s == 'all' or season_s == 'complete':
+            add_show(show, options=10)
+        else:
+            print('Invalid query')
+            quit(1)
         prompt_add_to_trakt(show)
 
     elif option == 'd' or option == 'direct' or option == 'direct search':
