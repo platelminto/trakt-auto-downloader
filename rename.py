@@ -7,6 +7,7 @@ import shutil
 import logging
 import configparser
 
+import PTN
 
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
@@ -24,25 +25,29 @@ MOVIE_LOG_PATH = config['MOVIES']['LOG_PATH']
 
 
 def main():
-    path = sys.argv[1]
-    filename = sys.argv[2]
-    # path = '/home/platelminto/Documents/tv/completed tv shows/'
-    # filename = 'DCs.Legends.of.Tomorrow.S05E01.720p.HDTV.x265-MiNX[TGx]'
+    # path = sys.argv[1]
+    # filename = sys.argv[2]
+    path = '/home/platelminto/Documents/tv/completed tv shows/'
+    filename = 'Scrubs Seasons 1-9 DVDRip'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
                             level=logging.INFO, format='%(asctime)s %(message)s')
         show, season, episode = '', 0, 0
         try:
-            path, filenames, is_folder = find_videos(path, filename)
+            path, filepaths, is_folder = find_videos(path, filename)
             episodes = list()
             if is_folder:
                 episodes = get_episode_details(path)
             else:
                 episodes.append(get_episode_details(filename)[0])
 
-            for ((show, season, episode, title), filename) in zip(episodes, filenames):
-                rename = '{}x{:02d} - {}{}'.format(season, episode, title, os.path.splitext(filename)[1])
+            for show, season, episode, title in episodes:
+                try:
+                    filepath = [fp for fp in filepaths if (season, episode) == parsed_info(fp)][0]
+                except IndexError:
+                    continue
+                rename = '{}x{:02d} - {}{}'.format(season, episode, title, os.path.splitext(filepath)[1])
 
                 found, show_folder = False, ''
 
@@ -68,8 +73,8 @@ def main():
                     season_folder = os.path.join(show_folder, 's{}'.format(season))
                     os.mkdir(season_folder)
 
-                shutil.move(os.path.join(path, filename), os.path.join(season_folder, rename))
-                logging.info('Added {} as {} in {}'.format(filename, rename, season_folder))
+                shutil.move(filepath, os.path.join(season_folder, rename))
+                logging.info('Added {} as {} in {}'.format(os.path.basename(os.path.normpath(filepath)), rename, season_folder))
 
             # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
             if path != TV_COMPLETED_PATH:
@@ -85,8 +90,8 @@ def main():
                             level=logging.INFO, format='%(asctime)s %(message)s')
         title, year = '', 0
         try:
-            path, filenames, in_folder = find_videos(MOVIE_COMPLETED_PATH, filename)
-            filename = filenames[0]
+            path, filepaths, in_folder = find_videos(MOVIE_COMPLETED_PATH, filename)
+            filename = filepaths[0]
 
             if in_folder:
                 # Capitalisation is usually correct in folder name but not always on the file itself
@@ -110,6 +115,13 @@ def main():
             path, filename, DEFAULT_COMPLETED_PATH))
         logging.warning('download dir {} unknown, adding {} to generic completed at {}'.format(
             path, filename, DEFAULT_COMPLETED_PATH))
+
+
+def parsed_info(filename):
+    parsed = PTN.parse(os.path.basename(os.path.normpath(filename)))
+    if 'season' not in parsed or 'episode' not in parsed:
+        return
+    return parsed['season'], parsed['episode']
 
 
 def get_movie_details(path):
@@ -149,7 +161,7 @@ def get_episode_details(path):
     for r in rows.fetchall():
         episodes.append((r[0], r[1], r[2], r[3]))
         c.execute('''DELETE FROM episode_info
-                     WHERE show = ? AND season = ? AND episode = ? 
+                     WHERE show = ? AND season = ? AND episode = ?
                      AND title = ? AND torrent_name = ?
                      ''', (r[0], r[1], r[2], r[3], r[4],))
     db.commit()
@@ -168,11 +180,11 @@ def find_videos(path, filename):
 
     filenames = list()
 
-    for _, _, files in os.walk(path):
+    for dirpath, _, files in os.walk(path):
         for file in files:
             if file.endswith('.mkv') or file.endswith('.mp4') or file.endswith('avi') \
                     or file.endswith('mov') or file.endswith('flv') or file.endswith('wmv'):
-                filenames.append(file)
+                filenames.append(os.path.join(dirpath, file))
 
     return path, filenames, True
 

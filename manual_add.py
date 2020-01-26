@@ -1,8 +1,10 @@
 import configparser
 import datetime
 import logging
+import re
 import sqlite3
 
+import PTN
 import tmdbsimple as tmdb
 from trakt.tv import TVShow
 from trakt.users import User
@@ -85,19 +87,37 @@ def add_tv_episode(show_search, season, episode, options=1):
 
 def add_season(show_search, season, options=1):
     formatted_search = '{} s{:02}'.format(show_search, season)
-    torrent = add_magnet(find_magnet([formatted_search], MediaType.SEASON, options), MediaType.SEASON)
+    # Complete individual seasons can be hard to find outside of a larger pack,
+    # so we also look for the show itself
+    torrent = add_magnet(find_magnet([formatted_search, show_search], MediaType.SEASON, options), MediaType.SEASON)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
-    results = tmdb.TV_Seasons(show['id'], season).info()
+    parsed = PTN.parse(get_torrent_name(torrent))
+    seasons = list()
+    if 'season' not in parsed:
+        seasons_input = input('What seasons does this download include? ')
+        if '-' in seasons_input:
+            input_split = seasons_input.strip().split('-')
+            seasons.extend(range(int(input_split[0]), int(input_split[1])+1))
+        else:
+            seasons.extend([int(s) for s in re.compile('[ ,]').split(seasons_input) if s != ''])
+    elif not isinstance(parsed['season'], list):
+        seasons.append(season)
+    else:
+        for s in parsed['season']:
+            seasons.append(s)
 
-    episodes_with_names = list()
+    for season in seasons:
+        results = tmdb.TV_Seasons(show['id'], season).info()
+        episodes_with_names = list()
+        for episode in results['episodes']:
+            episode_number = episode['episode_number']
+            episode_name = episode['name']
+            episodes_with_names.append((episode_number, episode_name))
 
-    for episode in results['episodes']:
-        episode_number = episode['episode_number']
-        episode_name = episode['name']
-        episodes_with_names.append((episode_number, episode_name))
+        add_season_to_tv_db(get_torrent_name(torrent), show['name'], season, episodes_with_names)
 
-    add_season_to_tv_db(get_torrent_name(torrent), show['name'], season, episodes_with_names)
+    return seasons
 
 
 def add_movie(movie_search, options=1):
@@ -168,7 +188,8 @@ def main():
                 episode = int(episode_s)
                 add_tv_episode(show, season, episode, options=5)
             elif episode_s.lower() == 'all' or episode_s.lower() == 'complete':
-                add_season(show, season, options=10)
+                seasons = add_season(show, season, options=10)
+                print('Added seasons: {}'.format(seasons))
         prompt_add_to_trakt(show)
 
     elif option == 'd' or option == 'direct' or option == 'direct search':
