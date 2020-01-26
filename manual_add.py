@@ -14,7 +14,7 @@ from media_type import MediaType
 from torrent_wrapper import add_magnet, get_torrent_name, find_magnet
 
 config = configparser.ConfigParser()
-config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
+config.read('config.ini')
 
 tmdb.API_KEY = config['TV_SHOWS']['TMDB_API_KEY']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
