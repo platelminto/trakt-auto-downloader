@@ -22,11 +22,6 @@ def main():
 
     c = db.cursor()
 
-    # If a show is unwatched, we don't want to keep it - therefore, the db is replaced every time
-    # If obtaining the feed fails (e.g. no results), we don't want to delete what we had though.
-    if len(feed['items']) > 0:
-        c.execute('DELETE FROM releases')
-
     for item in feed['items']:
         try:
             info = re.split(' ([0-9]+x[0-9]+ )', item['title'])
@@ -35,7 +30,7 @@ def main():
             episode = int(info[1].strip().split('x')[1])
             e_name = info[2].strip().replace('"', '')
 
-            c.execute('INSERT INTO releases VALUES(?, ?, ?, ?, ?, ?, ?)'
+            c.execute('REPLACE INTO releases VALUES(?, ?, ?, ?, ?, ?, ?)'
                       , [item['id'], title, season, episode, e_name,
                          format_search(title, season, episode), item['published']])
         except RuntimeError as e:

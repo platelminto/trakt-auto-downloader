@@ -99,6 +99,7 @@ def add_show(show_search, options=1):
 
     return add_seasons(show_search, torrent, options)
 
+
 def add_seasons(show_search, torrent, options=1):
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     parsed = PTN.parse(get_torrent_name(torrent))
