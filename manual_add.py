@@ -22,6 +22,8 @@ TRAKT_USERNAME = config['TRAKT']['USERNAME']
 
 LOG_PATH = config['DEFAULT']['MANUAL_ADD_LOG_PATH']
 
+info_cache = dict()
+
 # with open('/home/platelminto/Documents/tv/top100movies', 'r') as f:
 #     for line in f:
 #         movies.append(line.strip().replace('\'', ''))
@@ -29,8 +31,12 @@ LOG_PATH = config['DEFAULT']['MANUAL_ADD_LOG_PATH']
 
 def get_info(query, media_type, show_options=False):
     if media_type == MediaType.TV_SHOW:
+        if MediaType.TV_SHOW in info_cache:
+            return info_cache[MediaType.TV_SHOW]
         results = tmdb.Search().tv(query=query)['results']
     elif media_type == MediaType.MOVIE:
+        if MediaType.MOVIE in info_cache:
+            return info_cache[MediaType.MOVIE]
         results = tmdb.Search().movie(query=query)['results']
     else:
         print('{} is not a valid media type to search with'.format(media_type))
@@ -64,11 +70,15 @@ def get_info(query, media_type, show_options=False):
         name = result['title']
         release_date = result['release_date']
 
-    return {
+    info = {
         'id': result['id'],
         'name': name,
         'release_date': datetime.datetime.strptime(release_date, '%Y-%m-%d')
     }
+
+    info_cache[media_type] = info
+
+    return info
 
 
 def get_episode_name(show_id, season, episode):
