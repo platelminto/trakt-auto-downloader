@@ -14,8 +14,11 @@ debug = False
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
-PREFERRED_QUALITY = config['TV_SHOWS']['PREFERRED_QUALITY']
-AIRED_DELAY = config['TV_SHOWS']['AIRED_DELAY']
+AIRED_DELAY = config['AUTO_DOWNLOADER']['AIRED_DELAY']
+MINIMUM_SEEDERS = int(config['AUTO_DOWNLOADER']['MINIMUM_SEEDERS'])
+PREFERRED_QUALITY = config['AUTO_DOWNLOADER']['PREFERRED_QUALITY']
+PREFERRED_CODEC = config['AUTO_DOWNLOADER']['PREFERRED_CODEC']
+
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
 LOG_PATH = config['TV_SHOWS']['LOG_PATH']
@@ -50,18 +53,62 @@ def main():
 
 
 def add_and_get_torrent(title):
-    results = search_torrent([title], MediaType.EPISODE, 3)
+    results = search_torrent([title], MediaType.EPISODE, 15, use_all_scrapers=True)
+    filters = generate_filters([('seeders', MINIMUM_SEEDERS), ('title', PREFERRED_QUALITY), ('title', PREFERRED_CODEC)])
     magnet_to_add = results[0].magnet
 
-    for current_title, magnet in [(r.title, r.magnet) for r in results]:
-        # When preferring quality over search, different (usually previous) episodes might get selected,
-        # so we check for this.
-        if PREFERRED_QUALITY in current_title and \
-                get_episode_info(title) == get_episode_info(current_title):
-            magnet_to_add = magnet
+    for filter in filters:
+        filtered_results = filter_results(title, results, filter)
+        if len(filtered_results) > 0:
+            magnet_to_add = filtered_results[0].magnet
             break
 
     return get_torrent_name(add_magnet(magnet_to_add, MediaType.EPISODE))
+
+
+def generate_filters(named_filters):
+    filters = list()
+    for index, _ in enumerate(named_filters):
+        filter = dict()
+        for filter_name, filter_value in named_filters[0:len(named_filters)-index]:
+            filter.setdefault(filter_name, []).append(filter_value)
+        filters.append(filter)
+
+    return filters
+
+
+def filter_results(title, results, filter):
+    filtered_results = list()
+    filtered_results.extend(results)
+
+    for filter_name in filter.keys():
+        for filter_value in filter[filter_name]:
+            for result in results:
+                # If episode isn't what we're looking for, remove
+                if get_episode_info(title) != get_episode_info(result.title):
+                    try:
+                        filtered_results.remove(result)
+                    except ValueError:
+                        pass
+                    continue
+                attr = getattr(result, filter_name, result.title)
+                # If attribute is an int, we want to be larger than it
+                try:
+                    attr_int = int(attr)
+                    if attr_int < filter_value:
+                        try:
+                            filtered_results.remove(result)
+                        except ValueError:
+                            pass
+                # Otherwise, we want to make sure it is included in it
+                except ValueError:
+                    if filter_value.lower() not in attr.lower():
+                        try:
+                            filtered_results.remove(result)
+                        except ValueError:
+                            pass
+
+    return filtered_results
 
 
 def get_episode_info(filename):
