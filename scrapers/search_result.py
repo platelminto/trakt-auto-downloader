@@ -12,3 +12,9 @@ class SearchResult:
         return 'Size: {}\t SE: {}\t Uploaded: {}\t By: {}\t LE: {}'.format(
             self.size, self.seeders, self.date, self.uploader, self.leechers
         )
+
+    def __str__(self):
+        return '{}'.format(self.title)
+
+    def __repr__(self):
+        return '{}'.format(self.title)
