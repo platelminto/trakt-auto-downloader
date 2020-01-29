@@ -105,7 +105,8 @@ def add_season(show_search, season, options=1):
 
 
 def add_show(show_search, options=1):
-    torrent = add_magnet(find_magnet([show_search], MediaType.TV_SHOW, options), MediaType.TV_SHOW)
+    formatted_search = '{} complete'.format(show_search)
+    torrent = add_magnet(find_magnet([show_search, formatted_search], MediaType.TV_SHOW, options), MediaType.TV_SHOW)
 
     return add_seasons(show_search, torrent, options)
 
