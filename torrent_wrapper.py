@@ -4,6 +4,7 @@ import time
 
 import requests
 import transmissionrpc
+import PTN
 
 from media_type import MediaType
 from scrapers import _1377x, tpbdigital
@@ -58,6 +59,7 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
                 logging.warning('{} timed out for {}'.format(scraper.name, searches))
                 print('{} timed out for {}'.format(scraper.name, searches))
         if len(results) > 0:
+            results = list(filter(lambda result: result.title != '', results))
             return results
 
     logging.error('no magnets found for {}'.format(searches))
@@ -76,7 +78,7 @@ def get_torrent_name(added_torrent):
 
 
 def add_magnet(magnet, media_type):
-    if media_type == MediaType.EPISODE or media_type == MediaType.SEASON:
+    if media_type == MediaType.EPISODE or media_type == MediaType.SEASON or media_type == MediaType.TV_SHOW:
         path = TV_COMPLETED_PATH
     elif media_type == MediaType.MOVIE:
         path = MOVIE_COMPLETED_PATH
