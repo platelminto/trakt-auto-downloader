@@ -87,7 +87,7 @@ def get_episode_name(show_id, season, episode):
 
 def add_tv_episode(show_search, season, episode, options=1):
     formatted_search = '{} s{:02}e{:02}'.format(show_search, season, episode)
-    torrent = add_magnet(find_magnet([formatted_search], MediaType.EPISODE, options), MediaType.EPISODE)
+    torrent = add_magnet(find_magnet([formatted_search], MediaType.EPISODE, options, True), MediaType.EPISODE)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     episode_name = get_episode_name(show['id'], season, episode)
@@ -99,14 +99,14 @@ def add_season(show_search, season, options=1):
     formatted_search = '{} s{:02}'.format(show_search, season)
     # Complete individual seasons can be hard to find outside of a larger pack,
     # so we also look for the show itself to find those
-    torrent = add_magnet(find_magnet([formatted_search, show_search], MediaType.SEASON, options), MediaType.SEASON)
+    torrent = add_magnet(find_magnet([formatted_search, show_search], MediaType.SEASON, options, True), MediaType.SEASON)
 
     return add_seasons(show_search, torrent, options)
 
 
 def add_show(show_search, options=1):
     formatted_search = '{} complete'.format(show_search)
-    torrent = add_magnet(find_magnet([show_search, formatted_search], MediaType.TV_SHOW, options), MediaType.TV_SHOW)
+    torrent = add_magnet(find_magnet([show_search, formatted_search], MediaType.TV_SHOW, options, True), MediaType.TV_SHOW)
 
     return add_seasons(show_search, torrent, options)
 
@@ -139,7 +139,7 @@ def add_seasons(show_search, torrent, options=1):
 
 
 def add_movie(movie_search, options=1):
-    torrent = add_magnet(find_magnet([movie_search], MediaType.MOVIE, options), MediaType.MOVIE)
+    torrent = add_magnet(find_magnet([movie_search], MediaType.MOVIE, options, True), MediaType.MOVIE)
 
     movie = get_info(movie_search, MediaType.MOVIE, options > 1)
     year = movie['release_date'].year.numerator
@@ -233,8 +233,8 @@ def prompt_add_to_trakt(show):
             show_search = TVShow.search(show)
             trakt_show = show_search[0]
             if len(show_search) > 1:
-                for i, result in show_search:
-                    print('{} {}'.format(i + 1, show_search.title))
+                for i, result in enumerate(show_search):
+                    print('{} {}'.format(i + 1, result.title))
                     print()
 
                 show_option = int(input('Select a show (0 to abort): '))
