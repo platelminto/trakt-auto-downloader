@@ -23,12 +23,13 @@ def get_magnet_from_torrent(torrent, timeout):
 
 
 def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
-    limit = options
     results = list()
-    for _ in range(options * len(searches)):
-        results.append(SearchResult())
 
     for title in searches:
+        limit = options
+        current_results = list()
+        for _ in range(options):
+            current_results.append(SearchResult())
         url = ''
         if media_type == MediaType.ANY:
             url = 'https://www.1377x.to/search/' + urllib.parse.quote_plus(title) + '/1/'
@@ -42,12 +43,12 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
 
         y = soup.findAll('td')
         for td in y:
-            current_result = results[options - limit]
             if limit > 0:
+                current_result = current_results[options - limit]
                 if 'coll-2' in td['class']:
-                    current_result.seeders = td.contents[0]
+                    current_result.seeders = int(td.contents[0].strip())
                 if 'coll-3' in td['class']:
-                    current_result.leechers = td.contents[0]
+                    current_result.leechers = int(td.contents[0].strip())
                 if 'coll-date' in td['class']:
                     current_result.date = str(td.contents[0])
                 if 'coll-4' in td['class']:
@@ -61,14 +62,16 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
 
         for a in x:
             if limit > 0:
-                current_result = results[options - limit]
-                if a['href'].startswith('/torrent/') and a.contents[0] not in [r.title for r in results]:
+                current_result = current_results[options - limit]
+                if a['href'].startswith('/torrent/') and a.contents[0] not in [r.title for r in current_results]:
                     current_result.title = a.contents[0]
                     current_result.magnet = get_magnet_from_torrent(a['href'], timeout)
                     limit -= 1
 
-        if results[0].title == '':
+        if current_results[0].title == '':
             raise LookupError
+
+        results.extend(current_results)
 
     return results
 

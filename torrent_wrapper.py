@@ -1,6 +1,7 @@
 import configparser
 import logging
 import time
+import traceback
 
 import requests
 import transmissionrpc
@@ -36,10 +37,11 @@ for scraper in scraper_strings:
 
 
 def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrapers=False):
+    results = list()
     if not use_all_scrapers:
         for scraper in SCRAPER_PREFERENCE:
             try:
-                return scraper.scrape(searches, media_type, options)
+                results.extend(scraper.scrape(searches, media_type, options))
             except LookupError:
                 logging.warning('{} had no results for {}'.format(scraper.name, searches))
                 print('{} had no results for {}'.format(scraper.name, searches))
@@ -47,20 +49,22 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
                 logging.warning('{} timed out for {}'.format(scraper.name, searches))
                 print('{} timed out for {}'.format(scraper.name, searches))
     else:
-        results = list()
         for scraper in SCRAPER_PREFERENCE:
             try:
                 current_results = scraper.scrape(searches, media_type, int(options / len(SCRAPER_PREFERENCE)))
-                results += current_results
+                results.extend(current_results)
             except LookupError:
                 logging.warning('{} had no results for {}'.format(scraper.name, searches))
                 print('{} had no results for {}'.format(scraper.name, searches))
+                print(traceback.format_exc())
             except requests.exceptions.Timeout:
                 logging.warning('{} timed out for {}'.format(scraper.name, searches))
                 print('{} timed out for {}'.format(scraper.name, searches))
-        if len(results) > 0:
-            results = list(filter(lambda result: result.title != '', results))
-            return results
+
+    if len(results) > 0:
+        results = list(filter(lambda result: result.title != '', results))
+        results.sort(key=lambda result: result.seeders, reverse=True)
+        return results
 
     logging.error('no magnets found for {}'.format(searches))
     print('no magnets found for {}'.format(searches))
