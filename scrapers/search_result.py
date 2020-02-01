@@ -1,3 +1,6 @@
+import PTN
+
+
 class SearchResult:
     def __init__(self, title='', magnet='', date='', size='', uploader='', seeders='', leechers=''):
         self.leechers = leechers
@@ -18,3 +21,9 @@ class SearchResult:
 
     def __repr__(self):
         return '{}'.format(self.title)
+
+
+def torrent_is_episode(torrent_title):
+    info = PTN.parse(torrent_title)
+
+    return 'episode' in info
