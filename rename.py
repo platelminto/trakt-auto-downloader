@@ -28,7 +28,7 @@ def main():
     path = sys.argv[1]
     filename = sys.argv[2]
     # path = '/home/platelminto/Documents/tv/completed tv shows/'
-    # filename = 'Black.Mirror.S01-S04.1080p.WEBRip.x265.HEVC-MRN'
+    # filename = 'The.Good.Place.S04E13.720p.HDTV.x265-MiNX[TGx]'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',

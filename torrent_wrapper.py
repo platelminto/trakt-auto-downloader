@@ -37,37 +37,40 @@ for scraper in scraper_strings:
 
 
 def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrapers=False):
+    sanitised_queries = list()
+    for query in searches:
+        sanitised_queries.append(query.replace('.', '').replace('\'', ''))
     results = list()
     if not use_all_scrapers:
         for scraper in SCRAPER_PREFERENCE:
             try:
-                results.extend(scraper.scrape(searches, media_type, options))
+                results.extend(scraper.scrape(sanitised_queries, media_type, options))
             except LookupError:
-                logging.warning('{} had no results for {}'.format(scraper.name, searches))
-                print('{} had no results for {}'.format(scraper.name, searches))
+                logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
+                print('{} had no results for {}'.format(scraper.name, sanitised_queries))
             except requests.exceptions.Timeout:
-                logging.warning('{} timed out for {}'.format(scraper.name, searches))
-                print('{} timed out for {}'.format(scraper.name, searches))
+                logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
+                print('{} timed out for {}'.format(scraper.name, sanitised_queries))
     else:
         for scraper in SCRAPER_PREFERENCE:
             try:
-                current_results = scraper.scrape(searches, media_type, int(options / len(SCRAPER_PREFERENCE)))
+                current_results = scraper.scrape(sanitised_queries, media_type, int(options / len(SCRAPER_PREFERENCE)))
                 results.extend(current_results)
             except LookupError:
-                logging.warning('{} had no results for {}'.format(scraper.name, searches))
-                print('{} had no results for {}'.format(scraper.name, searches))
+                logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
+                print('{} had no results for {}'.format(scraper.name, sanitised_queries))
                 print(traceback.format_exc())
             except requests.exceptions.Timeout:
-                logging.warning('{} timed out for {}'.format(scraper.name, searches))
-                print('{} timed out for {}'.format(scraper.name, searches))
+                logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
+                print('{} timed out for {}'.format(scraper.name, sanitised_queries))
 
     if len(results) > 0:
         results = list(filter(lambda result: result.title != '', results))
         results.sort(key=lambda result: result.seeders, reverse=True)
         return results
 
-    logging.error('no magnets found for {}'.format(searches))
-    print('no magnets found for {}'.format(searches))
+    logging.error('no magnets found for {}'.format(sanitised_queries))
+    print('no magnets found for {}'.format(sanitised_queries))
     quit(1)
 
 
@@ -93,11 +96,7 @@ def add_magnet(magnet, media_type):
 
 
 def find_magnet(queries, media_type=MediaType.ANY, options=1, use_all_scrapers=False):
-    sanitised_queries = list()
-    for query in queries:
-        sanitised_queries.append(query.replace('.', '').replace('\'', ''))
-
-    results = search_torrent(sanitised_queries, media_type, options, use_all_scrapers)
+    results = search_torrent(queries, media_type, options, use_all_scrapers)
 
     try:
         selected_torrent_title, selected_magnet = results[0].title, results[0].magnet
