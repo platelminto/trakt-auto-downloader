@@ -53,8 +53,10 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
     else:
         for scraper in SCRAPER_PREFERENCE:
             try:
-                current_results = scraper.scrape(sanitised_queries, media_type, int(options / len(SCRAPER_PREFERENCE)))
-                results.extend(current_results)
+                current_results = scraper.scrape(sanitised_queries, media_type, options)
+                for result in current_results:
+                    if result.title.lower().strip() not in [r.title.lower().strip() for r in results]:
+                        results.append(result)
             except LookupError:
                 logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
                 print('{} had no results for {}'.format(scraper.name, sanitised_queries))
@@ -65,7 +67,7 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
     if len(results) > 0:
         results = list(filter(lambda result: result.title != '', results))
         results.sort(key=lambda result: result.seeders, reverse=True)
-        return results
+        return results[:options]
 
     logging.error('no magnets found for {}'.format(sanitised_queries))
     print('no magnets found for {}'.format(sanitised_queries))
