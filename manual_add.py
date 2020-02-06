@@ -204,7 +204,7 @@ def main():
             episode_s = input('Episode: ').lower()
             if is_int(episode_s):
                 episode = int(episode_s)
-                add_tv_episode(show, season, episode, options=5)
+                add_tv_episode(show, season, episode, options=8)
             elif episode_s == 'all' or episode_s == 'complete':
                 seasons = add_season(show, season, options=10)
                 print('Added seasons: {}'.format(seasons))
