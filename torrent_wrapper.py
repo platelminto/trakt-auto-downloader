@@ -1,7 +1,6 @@
 import configparser
 import logging
 import time
-import traceback
 
 import requests
 import transmissionrpc
@@ -59,7 +58,6 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
             except LookupError:
                 logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
                 print('{} had no results for {}'.format(scraper.name, sanitised_queries))
-                print(traceback.format_exc())
             except requests.exceptions.Timeout:
                 logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
                 print('{} timed out for {}'.format(scraper.name, sanitised_queries))
@@ -71,7 +69,7 @@ def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrape
 
     logging.error('no magnets found for {}'.format(sanitised_queries))
     print('no magnets found for {}'.format(sanitised_queries))
-    quit(1)
+    raise LookupError
 
 
 def get_torrent_name(added_torrent):

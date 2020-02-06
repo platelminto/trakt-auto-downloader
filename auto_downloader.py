@@ -1,6 +1,7 @@
 import configparser
 import logging
 import sqlite3
+import traceback
 
 import PTN
 
@@ -37,18 +38,22 @@ def main():
         searches.append(row[0])
 
     for search in searches:
-        torrent_name = add_and_get_torrent(search)
+        try:
+            torrent_name = add_and_get_torrent(search)
 
-        c.execute('''INSERT OR IGNORE INTO episode_info 
-                     SELECT ?, show, season, episode, title FROM releases
-                     WHERE search = ?
-                     ''', (torrent_name, search))
-        if not debug:
-            c.execute('''DELETE FROM releases
+            c.execute('''INSERT OR IGNORE INTO episode_info 
+                         SELECT ?, show, season, episode, title FROM releases
                          WHERE search = ?
-                         ''', (search,))
+                         ''', (torrent_name, search))
+            if not debug:
+                c.execute('''DELETE FROM releases
+                             WHERE search = ?
+                             ''', (search,))
+        except LookupError:
+            pass
 
-    db.commit()
+        db.commit()
+
     db.close()
 
 
@@ -125,4 +130,4 @@ if __name__ == '__main__':
     try:
         main()
     except RuntimeError as e:
-        logging.error('{}'.format(e))
+        logging.error('{}'.format(traceback.format_exc()))

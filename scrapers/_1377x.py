@@ -70,7 +70,7 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
 
         results.extend(current_results)
 
-    if results[0].title == '':
+    if len(results) < 1 or results[0].title == '':
         raise LookupError
 
     if media_type == MediaType.TV_SHOW or media_type == MediaType.SEASON:
