@@ -190,11 +190,16 @@ def is_int(s):
 
 
 def main():
-    option = input('(m)ovie, (tv) show, or (d)irect search: ').lower()
+    option = input('(m)ovie, (tv) show, or (d)irect search: ').lower().strip()
+    options = 10
+
+    if option.endswith('\''):
+        options = int(input('Options: ').strip())
+        option = option.replace('\'', '')
 
     if option == 'm' or option == 'movie':
         title = input('Search for: ')
-        add_movie(title, options=5)
+        add_movie(title, options=options)
 
     elif option == 'tv' or option == 't' or option == 'tv show':
         show = input('Show name: ')
@@ -204,15 +209,15 @@ def main():
             episode_s = input('Episode: ').lower()
             if is_int(episode_s):
                 episode = int(episode_s)
-                add_tv_episode(show, season, episode, options=8)
+                add_tv_episode(show, season, episode, options=options)
             elif episode_s == 'all' or episode_s == 'complete':
-                seasons = add_season(show, season, options=10)
+                seasons = add_season(show, season, options=options)
                 print('Added seasons: {}'.format(seasons))
             else:
                 print('Invalid query')
                 quit(1)
         elif season_s == 'all' or season_s == 'complete':
-            add_show(show, options=10)
+            add_show(show, options=options)
         else:
             print('Invalid query')
             quit(1)
