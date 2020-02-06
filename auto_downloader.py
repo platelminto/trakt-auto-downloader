@@ -54,6 +54,13 @@ def main():
 
         db.commit()
 
+    # If we still haven't found a download after a month, delete it.
+    # Keep after the main loop in case the script isn't ran in a while,
+    # so can go through a backlog before deleting ones we can't find.
+    c.execute('''DELETE FROM releases
+                 WHERE datetime(airs) <= datetime('now', '-1 month')''')
+    db.commit()
+
     db.close()
 
 
