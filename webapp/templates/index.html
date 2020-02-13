@@ -1,5 +1,6 @@
 {% extends "master.html" %}
 
+
 {% block title %}Home{% endblock %}
 
 {% block body %}
@@ -22,7 +23,7 @@
     <input type="text" name="movie">
     <input type="submit" title="Submit">
 </form>
-<form method="POST" id="tv-search">
+<form method="POST" id="tv-search" hidden>
     Show:
     <input type="text" name="show">
     Season:
@@ -31,7 +32,7 @@
     <input type="text" name="episode">
     <input type="submit">
 </form>
-<form method="POST" id="direct-search">
+<form method="POST" id="direct-search" hidden>
     Search:
     <input type="text" name="search">
     <input type="submit">
@@ -39,6 +40,9 @@
 </div>
 
 {% for option in options %}
-    <div><p>{{option.title}}: {{option.text}}</p></div>
+<div>
+    <h3><a href="add_magnet/{{option.magnet}}&search={{search}}">{{option.title}}</a></h3>
+    <p>{{option.text}}</p>
+</div>
 {% endfor %}
 {% endblock %}

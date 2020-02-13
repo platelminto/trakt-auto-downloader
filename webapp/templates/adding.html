@@ -1,0 +1,16 @@
+{% extends "master.html" %}
+
+
+{% block title %}Adding{% endblock %}
+{% block body %}
+
+<h2>What movie is this:</h2>
+
+{% for result in results %}
+<div>
+    <h4><a href="/add_info/{{magnet}}&title={{result['title']}}&year={{result['release_date']}}">{{result['title']}}</a></h4>
+    <h5>{{result['overview']}}</h5>
+</div>
+{% endfor %}
+
+{% endblock %}
