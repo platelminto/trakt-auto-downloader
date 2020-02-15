@@ -232,7 +232,7 @@ def main():
 def prompt_add_to_trakt(show):
     me = User(TRAKT_USERNAME)
     show = get_info(show, MediaType.TV_SHOW, True)['name']
-    if show.lower() not in [show.title.lower() for show in me.watched_shows]:
+    if show.lower() not in [show.title.lower() for show in me.watched_shows + me.watchlist_shows]:
         add_to_trakt = input('Add to trakt (y/n): ').lower()
         if add_to_trakt == 'y' or add_to_trakt == 'ye' or add_to_trakt == 'yes':
             show_search = TVShow.search(show)
@@ -247,7 +247,7 @@ def prompt_add_to_trakt(show):
                     quit(0)
                 trakt_show = show_search[show_option - 1]
 
-            trakt_show.add_to_library()
+            trakt_show.add_to_watchlist()
 
 
 if __name__ == '__main__':
