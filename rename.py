@@ -27,8 +27,8 @@ MOVIE_LOG_PATH = config['MOVIES']['LOG_PATH']
 def main():
     path = sys.argv[1]
     filename = sys.argv[2]
-    # path = '/home/platelminto/Documents/tv/completed tv shows/'
-    # filename = 'The.Good.Place.S04E13.720p.HDTV.x265-MiNX[TGx]'
+    # path = '/home/platelminto/Downloads/'
+    # filename = 'Family Guy - season\'s 1-9'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
@@ -78,7 +78,8 @@ def main():
                 logging.info('Added {} as {} in {}'.format(os.path.basename(os.path.normpath(filepath)), rename, season_folder))
 
             # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
-            if path != TV_COMPLETED_PATH:
+            # If some videos weren't moved by above, don't delete the folder
+            if path != TV_COMPLETED_PATH and len(find_videos(path, filename)[1]) == 0:
                 shutil.rmtree(path)
 
         except RuntimeError as e:
@@ -183,8 +184,8 @@ def find_videos(path, filename):
 
     for dirpath, _, files in os.walk(path):
         for file in files:
-            if file.endswith('.mkv') or file.endswith('.mp4') or file.endswith('avi') \
-                    or file.endswith('mov') or file.endswith('flv') or file.endswith('wmv'):
+            if file.endswith('.mkv') or file.endswith('.mp4') or file.endswith('.avi') \
+                    or file.endswith('.mov') or file.endswith('.flv') or file.endswith('.wmv'):
                 filenames.append(os.path.join(dirpath, file))
 
     return path, filenames, True
