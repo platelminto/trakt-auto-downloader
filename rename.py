@@ -27,8 +27,8 @@ MOVIE_LOG_PATH = config['MOVIES']['LOG_PATH']
 def main():
     path = sys.argv[1]
     filename = sys.argv[2]
-    # path = '/home/platelminto/Downloads/'
-    # filename = 'Family Guy - season\'s 1-9'
+    # path = '/home/platelminto/Documents/tv/completed tv shows/'
+    # filename = 'star.trek.picard.s01e04.720p.webrip.x264-xlf[eztv].mkv'
 
     if path == TV_COMPLETED_PATH:
         logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
@@ -180,7 +180,7 @@ def get_episode_details(path):
 
 def find_videos(path, filename):
     if os.path.isfile(os.path.join(path, filename)):
-        return path, [filename], False
+        return path, [os.path.join(path, filename)], False
 
     path = os.path.join(path, filename)
 
