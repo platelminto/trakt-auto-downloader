@@ -67,6 +67,10 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=4):
                     count += 1
             except IndexError:
                 break
+            # Since visiting each link is slow, don't do all of them (since later we filter
+            # to a list of length options anyway)
+            if count * 2 > options:
+                break
 
         results.extend(current_results)
 
