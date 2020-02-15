@@ -1,12 +1,16 @@
 import datetime
+import os
+import sys
 
 from flask import Flask, request
 import flask
 import tmdbsimple as tmdb
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from media_type import MediaType
 from torrent_wrapper import search_torrent
-from manual_add import add_tv_episode, add_season, add_show, add_magnet, add_to_movie_db
+from manual_add import add_magnet, add_to_movie_db
 
 app = Flask(__name__)
 

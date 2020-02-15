@@ -4,10 +4,9 @@ import time
 
 import requests
 import transmissionrpc
-import PTN
 
 from media_type import MediaType
-from scrapers import _1377x, tpbdigital
+from scrapers import tpbdigital, _1377x
 
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
