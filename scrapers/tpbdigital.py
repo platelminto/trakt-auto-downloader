@@ -1,6 +1,3 @@
-import urllib.parse
-
-import PTN
 import requests
 from bs4 import BeautifulSoup
 
