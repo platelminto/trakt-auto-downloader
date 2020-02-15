@@ -42,7 +42,10 @@ def main():
             else:
                 episodes.append(get_episode_details(filename)[0])
 
-            for show, season, episode, title in episodes:
+            db = sqlite3.connect(DATABASE_PATH)
+            c = db.cursor()
+
+            for show, season, episode, title, torrent_name in episodes:
                 try:
                     # Find the file that matches this season & episode
                     filepath = [fp for fp in filepaths if (season, episode) == parsed_info(fp)][0]
@@ -75,11 +78,17 @@ def main():
                     os.mkdir(season_folder)
 
                 shutil.move(filepath, os.path.join(season_folder, rename))
+                c.execute('''DELETE FROM episode_info
+                             WHERE show = ? AND season = ? AND episode = ?
+                             AND title = ? AND torrent_name = ?
+                             ''', (show, season, episode, title, torrent_name,))
+                db.commit()
                 logging.info('Added {} as {} in {}'.format(os.path.basename(os.path.normpath(filepath)), rename, season_folder))
 
+            db.close()
             # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
             # If some videos weren't moved by above, don't delete the folder
-            if path != TV_COMPLETED_PATH and len(find_videos(path, filename)[1]) == 0:
+            if path != TV_COMPLETED_PATH and len(find_videos(path, '')[1]) == 0:
                 shutil.rmtree(path)
 
         except RuntimeError as e:
@@ -161,11 +170,8 @@ def get_episode_details(path):
     episodes = list()
 
     for r in rows.fetchall():
-        episodes.append((r[0], r[1], r[2], r[3]))
-        c.execute('''DELETE FROM episode_info
-                     WHERE show = ? AND season = ? AND episode = ?
-                     AND title = ? AND torrent_name = ?
-                     ''', (r[0], r[1], r[2], r[3], r[4],))
+        episodes.append((r[0], r[1], r[2], r[3], r[4]))
+
     db.commit()
     db.close()
 
