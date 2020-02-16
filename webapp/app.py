@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+from threading import Thread
 
 from flask import Flask, request
 import flask
@@ -19,33 +20,6 @@ def get_movie(query):
     results = tmdb.Search().movie(query=query)['results']
 
     return results[:min(8, len(results))]
-
-    if len(results) > 1 and show_options:
-        return results
-        # print('What result is this?')
-        # for i in range(min(5, len(results))):
-        #     print('{}) Name: {}\t Overview: {}\tPopularity: {}\t{}'.format(i + 1, results[i][title],
-        #                                                                    results[i]['overview'],
-        #                                                                    results[i]['popularity'], results[i]))
-        #     print()
-        # result = results[int(input('Pick one: ')) - 1]
-
-    if media_type == MediaType.TV_SHOW:
-        name = result['name']
-        release_date = result['first_air_date']
-    else:
-        name = result['title']
-        release_date = result['release_date']
-
-    info = {
-        'id': result['id'],
-        'name': name,
-        'release_date': datetime.datetime.strptime(release_date, '%Y-%m-%d')
-    }
-
-    info_cache[media_type] = info
-
-    return info
 
 
 @app.route('/')
@@ -76,7 +50,9 @@ def add_movie(magnet):
 
     year = date.year.numerator
 
-    add_to_movie_db(torrent, title, year)
+    thread = Thread(target=add_to_movie_db, args=(torrent, title, year))
+    thread.start()
+   # thread.join()
 
     return '''
     <h3>Added</h3>
