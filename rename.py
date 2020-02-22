@@ -80,8 +80,8 @@ def main():
                 shutil.move(filepath, os.path.join(season_folder, rename))
                 c.execute('''DELETE FROM episode_info
                              WHERE show = ? AND season = ? AND episode = ?
-                             AND title = ? AND torrent_name = ?
-                             ''', (show, season, episode, title, torrent_name,))
+                             AND title = ?
+                             ''', (show, season, episode, title,))
                 db.commit()
                 logging.info('Added {} as {} in {}'.format(os.path.basename(os.path.normpath(filepath)), rename, season_folder))
 
