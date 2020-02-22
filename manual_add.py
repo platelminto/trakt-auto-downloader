@@ -95,11 +95,14 @@ def add_tv_episode(show_search, season, episode, options=1):
     add_to_tv_db(torrent, show['name'], season, episode, episode_name)
 
 
-def add_season(show_search, season, options=1):
+def add_season(show_search, season, options=1, look_for_show=True):
     formatted_search = '{} s{:02}'.format(show_search, season)
     # Complete individual seasons can be hard to find outside of a larger pack,
     # so we also look for the show itself to find those
-    torrent = add_magnet(find_magnet([formatted_search, show_search], MediaType.SEASON, options, True), MediaType.SEASON)
+    searches = [formatted_search]
+    if look_for_show:
+        searches.append(show_search)
+    torrent = add_magnet(find_magnet(searches, MediaType.SEASON, options, True), MediaType.SEASON)
 
     return add_seasons(show_search, torrent, options)
 
@@ -212,6 +215,9 @@ def main():
                 add_tv_episode(show, season, episode, options=options)
             elif episode_s == 'all' or episode_s == 'complete':
                 seasons = add_season(show, season, options=options)
+                print('Added seasons: {}'.format(seasons))
+            elif episode_s == 'all\'' or episode_s == 'complete\'':
+                seasons = add_season(show, season, options=options, look_for_show=False)
                 print('Added seasons: {}'.format(seasons))
             else:
                 print('Invalid query')
