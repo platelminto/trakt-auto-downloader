@@ -34,6 +34,12 @@ for scraper in scraper_strings:
     SCRAPER_PREFERENCE.append(eval(scraper))
 
 
+def remove_completed_torrents():
+    for torrent in transmission.get_torrents():
+        if torrent.progress == 100:
+            transmission.remove_torrent(torrent._fields['id'])
+
+
 def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrapers=False):
     sanitised_queries = list()
     for query in searches:

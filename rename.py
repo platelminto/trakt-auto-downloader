@@ -9,6 +9,8 @@ import configparser
 
 import PTN
 
+from torrent_wrapper import remove_completed_torrents
+
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
 
@@ -126,6 +128,8 @@ def main():
             path, filename, DEFAULT_COMPLETED_PATH))
         logging.warning('download dir {} unknown, adding {} to generic completed at {}'.format(
             path, filename, DEFAULT_COMPLETED_PATH))
+
+    remove_completed_torrents()
 
 
 def parsed_info(filename):
