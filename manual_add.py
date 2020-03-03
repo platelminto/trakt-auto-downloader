@@ -214,16 +214,16 @@ def main():
                 episode = int(episode_s)
                 add_tv_episode(show, season, episode, options=options)
             elif episode_s == 'all' or episode_s == 'complete':
-                seasons = add_season(show, season, options=options)
+                seasons = add_season(show, season, options=int(options*1.5))
                 print('Added seasons: {}'.format(seasons))
             elif episode_s == 'all\'' or episode_s == 'complete\'':
-                seasons = add_season(show, season, options=options, look_for_show=False)
+                seasons = add_season(show, season, options=int(options*1.5), look_for_show=False)
                 print('Added seasons: {}'.format(seasons))
             else:
                 print('Invalid query')
                 quit(1)
         elif season_s == 'all' or season_s == 'complete':
-            add_show(show, options=options)
+            add_show(show, options=options*2)
         else:
             print('Invalid query')
             quit(1)
