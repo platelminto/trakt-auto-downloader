@@ -97,9 +97,9 @@ def add_tv_episode(show_search, season, episode, options=1):
 
 def add_season(show_search, season, options=1, look_for_show=True):
     formatted_search = '{} s{:02}'.format(show_search, season)
+    searches = [formatted_search]
     # Complete individual seasons can be hard to find outside of a larger pack,
     # so we also look for the show itself to find those
-    searches = [formatted_search]
     if look_for_show:
         searches.append(show_search)
     torrent = add_magnet(find_magnet(searches, MediaType.SEASON, options, True), MediaType.SEASON)
