@@ -101,6 +101,7 @@ def add_season(show_search, season, options=1, look_for_show=True):
     # Complete individual seasons can be hard to find outside of a larger pack,
     # so we also look for the show itself to find those
     if look_for_show:
+        searches.append(show_search + ' complete')
         searches.append(show_search)
     torrent = add_magnet(find_magnet(searches, MediaType.SEASON, options, True), MediaType.SEASON)
 
