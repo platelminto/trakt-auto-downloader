@@ -193,7 +193,7 @@ def is_int(s):
 
 
 def main():
-    option = input('(m)ovie, (tv) show, or (d)irect search: ').lower().strip()
+    option = input('(m)ovie or (tv) show: ').lower().strip()
     options = 10
 
     if option.endswith('\''):
@@ -228,11 +228,6 @@ def main():
             print('Invalid query')
             quit(1)
         prompt_add_to_trakt(show)
-
-    elif option == 'd' or option == 'direct' or option == 'direct search':
-        query = input('Search for: ')
-        options = int(input('Number of options: '))
-        find_magnet([query], options=options, use_all_scrapers=True)
 
 
 def prompt_add_to_trakt(show):
