@@ -63,6 +63,8 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=6):
     if media_type == MediaType.TV_SHOW or media_type == MediaType.SEASON:
         results = [result for result in results if not torrent_is_episode(result.title)]
 
+    results.sort(key=lambda result: result.seeders, reverse=True)
+
     return results[:options]
 
 
