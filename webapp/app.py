@@ -57,6 +57,7 @@ def add_movie(magnet):
     return '''
     <h3>Added</h3>
     <p>To check progress click <a href='http://192.168.0.41:9091/transmission/web/'>here</a></p>
+    <p>To go back and add more, go <a href='http://192.168.0.41:5000/search'>here</a></p>
     '''
 
 
