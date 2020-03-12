@@ -137,6 +137,7 @@ def add_tv_episode(show_search, season, episode, options=1):
 
 
 def add_season(show_search, season, options=1, look_for_show=True):
+    added_seasons = list()
     formatted_search = '{} s{:02}'.format(show_search, season)
     searches = [formatted_search]
     # Complete individual seasons can be hard to find outside of a larger pack,
@@ -147,7 +148,9 @@ def add_season(show_search, season, options=1, look_for_show=True):
     titles_magnets = select_magnets(searches, MediaType.SEASON, options, True)
     for title, magnet in titles_magnets:
         torrent = add_magnet(magnet, MediaType.SEASON)
-        add_seasons(show_search, torrent, title, options)
+        added_seasons.extend(add_seasons(show_search, torrent, title, options))
+
+    return added_seasons
 
 
 def add_show(show_search, options=1):
@@ -158,12 +161,12 @@ def add_show(show_search, options=1):
         add_seasons(show_search, torrent, title, options)
 
 
-def add_seasons(show_search, torrent, title, options=1):
+def add_seasons(show_search, torrent, torrent_title, options=1):
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
-    parsed = PTN.parse(title)
+    parsed = PTN.parse(torrent_title)
     seasons = list()
     if 'season' not in parsed:
-        seasons_input = input('What seasons does {} include? '.format(title))
+        seasons_input = input('What seasons does {} include? '.format(torrent_title))
         if '-' in seasons_input:
             input_split = seasons_input.strip().split('-')
             seasons.extend(range(int(input_split[0]), int(input_split[1]) + 1))
