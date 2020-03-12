@@ -147,7 +147,7 @@ def add_season(show_search, season, options=1, look_for_show=True):
     titles_magnets = select_magnets(searches, MediaType.SEASON, options, True)
     for title, magnet in titles_magnets:
         torrent = add_magnet(magnet, MediaType.SEASON)
-        add_seasons(show_search, torrent, options, title)
+        add_seasons(show_search, torrent, title, options)
 
 
 def add_show(show_search, options=1):
@@ -155,12 +155,12 @@ def add_show(show_search, options=1):
     titles_magnets = select_magnets([show_search, formatted_search], MediaType.TV_SHOW, options, True)
     for title, magnet in titles_magnets:
         torrent = add_magnet(magnet, MediaType.TV_SHOW)
-        add_seasons(show_search, torrent, options, title)
+        add_seasons(show_search, torrent, title, options)
 
 
-def add_seasons(show_search, torrent, options=1, title='this'):
+def add_seasons(show_search, torrent, title, options=1):
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
-    parsed = PTN.parse(torrent._fields['name'].value)
+    parsed = PTN.parse(title)
     seasons = list()
     if 'season' not in parsed:
         seasons_input = input('What seasons does {} include? '.format(title))
@@ -223,14 +223,17 @@ def add_to_tv_db(torrent, show, season, episode, episode_name):
 
 
 def add_season_to_tv_db(torrent, show, season, episodes_with_names):
-    db = sqlite3.connect(DATABASE_PATH)
+    # timeout related to threading mentioned below
+    db = sqlite3.connect(DATABASE_PATH, timeout=20)
     for (episode, name) in episodes_with_names:
         db.cursor().execute(
             '''INSERT OR REPLACE INTO episode_info 
                VALUES(?, ?, ?, ?, ?)
                ''',
             (get_torrent_name(torrent), show, season, episode, name))
-    db.commit()
+        # pi is slow, so commit every operation so lock on db is removed fairly often,
+        # allowing other threads to use it
+        db.commit()
     db.close()
 
 
