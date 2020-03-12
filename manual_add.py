@@ -3,6 +3,7 @@ import datetime
 import logging
 import re
 import sqlite3
+import threading
 
 import PTN
 import tmdbsimple as tmdb
@@ -11,7 +12,7 @@ from trakt.users import User
 
 from media_type import MediaType
 # movies = list()
-from torrent_wrapper import add_magnet, get_torrent_name, find_magnet
+from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
 
 config = configparser.ConfigParser()
 config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
@@ -81,13 +82,53 @@ def get_info(query, media_type, show_options=False):
     return info
 
 
+def select_magnets(queries, media_type=MediaType.ANY, options=1, use_all_scrapers=False):
+    results = search_torrent(queries, media_type, options, use_all_scrapers)
+
+    if len(results) == 0:
+        print('Invalid search \'{}\''.format(queries))
+        logging.error('Invalid search \'{}\''.format(queries))
+        quit(1)
+
+    torrents_info = list()
+
+    if options > 1:
+        for i in range(min(options, len(results))):
+            print('{} {}'.format(i + 1, results[i].title))
+            print(results[i].info_string())
+            print()
+
+        torrents = list()
+        torrents_input = input('Select links (0 to abort): ')
+        if '-' in torrents_input:
+            input_split = torrents_input.strip().split('-')
+            torrents.extend(range(int(input_split[0]), int(input_split[1]) + 1))
+        else:
+            torrents.extend([int(s) for s in re.compile('[ ,]').split(torrents_input) if s != ''])
+
+        if len(torrents) == 0 or 0 in torrents:
+            quit(0)
+
+        print('Selecting: ')
+        for i in torrents:
+            selected_result = results[i - 1]
+            torrents_info.append((selected_result.title, selected_result.magnet))
+            print('\t {}'.format(selected_result.title))
+    else:
+        torrents_info = [results[0].title, results[0].magnet]
+
+    return torrents_info
+
+
 def get_episode_name(show_id, season, episode):
     return tmdb.TV_Episodes(series_id=show_id, season_number=season, episode_number=episode).info()['name']
 
 
 def add_tv_episode(show_search, season, episode, options=1):
     formatted_search = '{} s{:02}e{:02}'.format(show_search, season, episode)
-    torrent = add_magnet(find_magnet([formatted_search], MediaType.EPISODE, options, True), MediaType.EPISODE)
+    _, magnets = select_magnets([formatted_search], MediaType.EPISODE, options, True)
+
+    torrent = add_magnet(magnets[0], MediaType.EPISODE)
 
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
     episode_name = get_episode_name(show['id'], season, episode)
@@ -103,24 +144,26 @@ def add_season(show_search, season, options=1, look_for_show=True):
     if look_for_show:
         searches.append(show_search + ' complete')
         searches.append(show_search)
-    torrent = add_magnet(find_magnet(searches, MediaType.SEASON, options, True), MediaType.SEASON)
-
-    return add_seasons(show_search, torrent, options)
+    titles_magnets = select_magnets(searches, MediaType.SEASON, options, True)
+    for title, magnet in titles_magnets:
+        torrent = add_magnet(magnet, MediaType.SEASON)
+        add_seasons(show_search, torrent, options, title)
 
 
 def add_show(show_search, options=1):
     formatted_search = '{} complete'.format(show_search)
-    torrent = add_magnet(find_magnet([show_search, formatted_search], MediaType.TV_SHOW, options, True), MediaType.TV_SHOW)
+    titles_magnets = select_magnets([show_search, formatted_search], MediaType.TV_SHOW, options, True)
+    for title, magnet in titles_magnets:
+        torrent = add_magnet(magnet, MediaType.TV_SHOW)
+        add_seasons(show_search, torrent, options, title)
 
-    return add_seasons(show_search, torrent, options)
 
-
-def add_seasons(show_search, torrent, options=1):
+def add_seasons(show_search, torrent, options=1, title='this'):
     show = get_info(show_search, MediaType.TV_SHOW, options > 1)
-    parsed = PTN.parse(get_torrent_name(torrent))
+    parsed = PTN.parse(torrent._fields['name'].value)
     seasons = list()
     if 'season' not in parsed:
-        seasons_input = input('What seasons does this download include? ')
+        seasons_input = input('What seasons does {} include? '.format(title))
         if '-' in seasons_input:
             input_split = seasons_input.strip().split('-')
             seasons.extend(range(int(input_split[0]), int(input_split[1]) + 1))
@@ -138,17 +181,23 @@ def add_seasons(show_search, torrent, options=1):
             episode_name = episode['name']
             episodes_with_names.append((episode_number, episode_name))
 
-        add_season_to_tv_db(get_torrent_name(torrent), show['name'], season, episodes_with_names)
+        t = threading.Thread(target=add_season_to_tv_db,
+                             args=(torrent, show['name'], season, episodes_with_names))
+        t.start()
     return seasons
 
 
 def add_movie(movie_search, options=1):
-    torrent = add_magnet(find_magnet([movie_search], MediaType.MOVIE, options, True), MediaType.MOVIE)
+    titles_magnets = select_magnets([movie_search], MediaType.MOVIE, options, True)
+    for _, magnet in titles_magnets:
+        torrent = add_magnet(magnet, MediaType.MOVIE)
 
-    movie = get_info(movie_search, MediaType.MOVIE, options > 1)
-    year = movie['release_date'].year.numerator
+        movie = get_info(movie_search, MediaType.MOVIE, options > 1)
+        year = movie['release_date'].year.numerator
 
-    add_to_movie_db(torrent, movie['name'], year)
+        t = threading.Thread(target=add_to_movie_db,
+                             args=(torrent, movie['name'], year))
+        t.start()
 
 
 def add_to_movie_db(torrent, name, year):
@@ -173,14 +222,14 @@ def add_to_tv_db(torrent, show, season, episode, episode_name):
     db.close()
 
 
-def add_season_to_tv_db(final_torrent_name, show, season, episodes_with_names):
+def add_season_to_tv_db(torrent, show, season, episodes_with_names):
     db = sqlite3.connect(DATABASE_PATH)
     for (episode, name) in episodes_with_names:
         db.cursor().execute(
             '''INSERT OR REPLACE INTO episode_info 
                VALUES(?, ?, ?, ?, ?)
                ''',
-            (final_torrent_name, show, season, episode, name))
+            (get_torrent_name(torrent), show, season, episode, name))
     db.commit()
     db.close()
 

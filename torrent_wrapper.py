@@ -1,5 +1,6 @@
 import configparser
 import logging
+import re
 import time
 
 import requests
@@ -98,31 +99,3 @@ def add_magnet(magnet, media_type):
         path = GENERIC_COMPLETED_PATH
     return transmission.add_torrent(magnet,
                                     download_dir=path)
-
-
-def find_magnet(queries, media_type=MediaType.ANY, options=1, use_all_scrapers=False):
-    results = search_torrent(queries, media_type, options, use_all_scrapers)
-
-    try:
-        selected_torrent_title, selected_magnet = results[0].title, results[0].magnet
-    except IndexError:
-        print('Invalid search \'{}\''.format(queries))
-        logging.error('Invalid search \'{}\''.format(queries))
-        quit(1)
-
-    if options > 1:
-        for i in range(min(options, len(results))):
-            print('{} {}'.format(i + 1, results[i].title))
-            print(results[i].info_string())
-            print()
-
-        torrent = int(input('Select a link (0 to abort): '))
-
-        if torrent == 0:
-            quit(0)
-
-        selected_torrent_title, selected_magnet = results[torrent - 1].title, results[torrent - 1].magnet
-
-        print('Selecting {}'.format(selected_torrent_title))
-
-    return selected_magnet
