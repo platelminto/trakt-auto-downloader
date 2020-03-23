@@ -1,9 +1,11 @@
 import configparser
 import logging
+import os
 import sqlite3
 import traceback
 
 import PTN
+from dotenv import load_dotenv
 
 from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
 from media_type import MediaType
@@ -12,8 +14,9 @@ from media_type import MediaType
 
 debug = False
 
+load_dotenv()
 config = configparser.ConfigParser()
-config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
+config.read(os.environ['CONFIG_PATH'])
 
 AIRED_DELAY = config['AUTO_DOWNLOADER']['AIRED_DELAY']
 MINIMUM_SEEDERS = int(config['AUTO_DOWNLOADER']['MINIMUM_SEEDERS'])

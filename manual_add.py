@@ -1,12 +1,14 @@
 import configparser
 import datetime
 import logging
+import os
 import re
 import sqlite3
 import threading
 
 import PTN
 import tmdbsimple as tmdb
+from dotenv import load_dotenv
 from trakt.tv import TVShow
 from trakt.users import User
 
@@ -14,8 +16,9 @@ from media_type import MediaType
 # movies = list()
 from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
 
+load_dotenv()
 config = configparser.ConfigParser()
-config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
+config.read(os.environ['CONFIG_PATH'])
 
 tmdb.API_KEY = config['TV_SHOWS']['TMDB_API_KEY']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
@@ -31,6 +34,7 @@ info_cache = dict()
 
 
 def get_info(query, media_type, show_options=False):
+    # So multiple calls to get_info() in one go don't keep prompting the user
     if media_type == MediaType.TV_SHOW:
         if MediaType.TV_SHOW in info_cache:
             return info_cache[MediaType.TV_SHOW]

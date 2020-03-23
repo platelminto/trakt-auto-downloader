@@ -1,16 +1,18 @@
 import configparser
 import logging
-import re
+import os
 import time
 
 import requests
 import transmissionrpc
+from dotenv import load_dotenv
 
 from media_type import MediaType
 from scrapers import tpbdigital, _1377x
 
+load_dotenv()
 config = configparser.ConfigParser()
-config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
+config.read(os.environ['CONFIG_PATH'])
 
 TV_COMPLETED_PATH = config['TV_SHOWS']['COMPLETED_PATH']
 MOVIE_COMPLETED_PATH = config['MOVIES']['COMPLETED_PATH']

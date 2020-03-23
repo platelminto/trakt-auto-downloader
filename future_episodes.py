@@ -1,14 +1,17 @@
 import configparser
 import logging
+import os
 import re
 import sqlite3
 
 import feedparser
 
 # cron daily (could be even rare tbh)
+from dotenv import load_dotenv
 
+load_dotenv()
 config = configparser.ConfigParser()
-config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
+config.read(os.environ['CONFIG_PATH'])
 
 FEED_URL = config['TRAKT']['FEED_URL']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']

@@ -8,11 +8,13 @@ import logging
 import configparser
 
 import PTN
+from dotenv import load_dotenv
 
 from torrent_wrapper import remove_completed_torrents
 
+load_dotenv()
 config = configparser.ConfigParser()
-config.read('/home/platelminto/Documents/dev/python/movie tv scraper/config.ini')
+config.read(os.environ['CONFIG_PATH'])
 
 TV_PATH = config['TV_SHOWS']['MAIN_PATH']
 TV_COMPLETED_PATH = config['TV_SHOWS']['COMPLETED_PATH']
