@@ -1,0 +1,63 @@
+{% extends "master.html" %}
+
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<!--	<head>-->
+<!--		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>-->
+<!--		<script type=text/javascript>-->
+<!--			$(function() {-->
+<!--			  $('#hey').bind('input', function() {-->
+<!--				$.getJSON('/background_process', {-->
+<!--				  search: $('input[name="search_input"]').val(),-->
+<!--				}, function(data) {-->
+<!--				  $("#result").text(data.result);-->
+<!--				});-->
+<!--				return false;-->
+<!--			  });-->
+<!--			});-->
+<!--		</script>-->
+<!--	</head>-->
+
+<!--	<body>-->
+<!--		<div class='container'>-->
+<!--		<h3>Welcome! Which is the best programming language of them all?</h3>-->
+<!--			<form autocomplete="off">-->
+<!--				<input type=text size=5 name=search_input id="hey">-->
+<!--				<a href=# id=process_input><button class='btn btn-default'>Submit</button></a>-->
+<!--			</form>-->
+<!--		<p id=result></p>-->
+<!--		</div>-->
+<!--	</body>-->
+
+<head>
+    <link href="//code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="Stylesheet"/>
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js" ></script>
+
+<script type="text/javascript">
+$(function() {
+    $("#autocomplete").autocomplete({
+        source:function(request, response) {
+            $.getJSON("{{url_for('autocomplete')}}",{
+                q: request.term, // in flask, "q" will be the argument to look for using request.args
+            }, function(data) {
+                response(data.matching_results.map(x => x['title'])); // matching_results from jsonify
+            });
+        },
+        minLength: 2,
+        select: function(event, ui) {
+            console.log(ui.item.value); // not in your question, but might help later
+        }
+    });
+})
+
+</script>
+</head>
+<body>
+    <div>
+        <input name="autocomplete" type="text" id="autocomplete" class="form-control input-lg"/>
+    </div>
+</body>
+{% endblock %}
