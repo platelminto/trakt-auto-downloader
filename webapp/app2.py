@@ -127,7 +127,7 @@ def autocomplete():
     # What jQuery autocomplete uses
     for result in filter(lambda x: x['release_date'] != '', results):
         result['value'] = '{} ({})'.format(result['title'], datetime.datetime.strptime(result['release_date'], '%Y-%m-%d').year.numerator)
-    return jsonify(matching_results=results[:8])
+    return jsonify(matching_results=results[:12])
 
 
 @app.route('/')
