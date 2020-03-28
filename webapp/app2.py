@@ -5,24 +5,19 @@ import sqlite3
 import sys
 import threading
 from collections import defaultdict
-from threading import Thread
-from difflib import SequenceMatcher
-
-import PTN
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-import flask
-import tmdbsimple as tmdb
-from transmissionrpc import Torrent
-from wtforms import Form, StringField
 from typing import List
 
-from manual_add import get_info
+import PTN
+import flask
+import tmdbsimple as tmdb
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from media_type import MediaType
 from scrapers.search_result import SearchResult
 from torrent_wrapper import search_torrent, add_magnet, get_torrent_name, sanitise
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 app = Flask(__name__)
 
@@ -105,7 +100,6 @@ def get_movie(query):
 
 @app.route('/handle_data', methods=['POST'])
 def handle_data():
-    global successful
     result = request.form
 
     success = pick_movie(result)
