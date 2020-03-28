@@ -43,10 +43,14 @@ def remove_completed_torrents():
             transmission.remove_torrent(torrent._fields['id'])
 
 
+def sanitise(s):
+    return s.replace('.', '').replace('\'', '')
+
+
 def search_torrent(searches, media_type=MediaType.ANY, options=5, use_all_scrapers=False):
     sanitised_queries = list()
     for query in searches:
-        sanitised_queries.append(query.replace('.', '').replace('\'', ''))
+        sanitised_queries.append(sanitise(query))
     results = list()
     if not use_all_scrapers:
         for scraper in SCRAPER_PREFERENCE:
