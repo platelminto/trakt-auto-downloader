@@ -6,6 +6,7 @@ import sys
 import threading
 from collections import defaultdict
 from threading import Thread
+from difflib import SequenceMatcher
 
 import PTN
 from dotenv import load_dotenv
@@ -19,7 +20,7 @@ from typing import List
 from manual_add import get_info
 from media_type import MediaType
 from scrapers.search_result import SearchResult
-from torrent_wrapper import search_torrent, add_magnet, get_torrent_name
+from torrent_wrapper import search_torrent, add_magnet, get_torrent_name, sanitise
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -35,11 +36,6 @@ DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
 movie_quality_preference = config['MOVIE_SELECTOR']['QUALITY_PREFERENCE'].replace(' ', '').split(',')
 movie_min_seeders = int(config['MOVIE_SELECTOR']['MINIMUM_SEEDERS'])
-movie_preferred_codec = config['MOVIE_SELECTOR']['PREFERRED_CODEC']
-
-# Contains latest search info, so can access full information when title is called back from
-# user selection
-current_search_results = list()
 
 
 def auto_select_movie(title: str, search_results: List[SearchResult]) -> SearchResult:
@@ -47,32 +43,23 @@ def auto_select_movie(title: str, search_results: List[SearchResult]) -> SearchR
 
     for result in search_results:
         info = PTN.parse(result.title)
-        if info['title'].lower() == title.lower() and result.seeders >= movie_min_seeders:
+        if sanitise(info['title'].lower()) == sanitise(title.lower()) and result.seeders >= movie_min_seeders:
             title_and_seeder_results.append(result)
 
     quality_results = defaultdict(list)
-    codec_results = defaultdict(list)
 
     for result in title_and_seeder_results:
         for quality in movie_quality_preference:
             if quality in result.title:
                 quality_results[quality].append(result)
-                if movie_preferred_codec in result.title:
-                    codec_results[quality].append(result)
                 break
 
     for quality in movie_quality_preference:
         quality_results[quality].sort(key=lambda result: result.seeders, reverse=True)
-        codec_results[quality].sort(key=lambda result: result.seeders, reverse=True)
 
     picked_movie = None
 
     for quality in movie_quality_preference:
-        results = codec_results[quality]
-        if len(results) > 0:
-            picked_movie = results[0]
-            break
-
         results = quality_results[quality]
         if len(results) > 0:
             picked_movie = results[0]
@@ -85,7 +72,7 @@ def pick_movie(result):
     title = result['title']
     year = datetime.datetime.strptime(result['release_date'], '%Y-%m-%d').year.numerator
 
-    results = search_torrent([title], MediaType.MOVIE, 25, True)
+    results = search_torrent(['{} {}'.format(title, year)], MediaType.MOVIE, 25, True)
     picked_result = auto_select_movie(title, results)
 
     if not picked_result:
@@ -112,46 +99,41 @@ def add_to_movie_db(torrent, name, year):
 
 
 def get_movie(query):
-    results = tmdb.Search().movie(query=query)['results'][:8]
+    results = tmdb.Search().movie(query=query)['results']
     return results
 
 
 @app.route('/handle_data', methods=['POST'])
 def handle_data():
-    title = request.form['autocomplete']
+    global successful
+    result = request.form
 
-    result = [result for result in current_search_results if result['title'].lower() == title.lower()]
-
-    if not result:
-        return '''
-        <p>Please pick a result from the dropdown</p>
-        '''
-
-    success = pick_movie(result[0])
+    success = pick_movie(result)
 
     if success:
         return '''
         <h3>Added {}</h3>
         <p>To check progress click <a href='http://192.168.1.82:9091/transmission/web/'>here</a></p>
         <p>To go back and add more, go <a href='http://192.168.1.82:5000/search'>here</a></p>
-        '''.format(title)
+        '''.format(result['value'])
     else:
         return '''
         <p>Couldn't find a torrent for {}.</p>
         <p>Maybe it's too recent?</p>
-        '''
+        '''.format(result['value'])
 
 
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
-    global current_search_results
-    try:
-        search = request.args.get('q')
-        results = list(get_movie(search))
-        current_search_results = results
-        return jsonify(matching_results=results)
-    except Exception as e:
-        return str(e)
+    search = request.args.get('q')
+    results = list(get_movie(search))
+
+    results.sort(key=lambda x: float(x['popularity']), reverse=True)
+
+    # What jQuery autocomplete uses
+    for result in filter(lambda x: x['release_date'] != '', results):
+        result['value'] = '{} ({})'.format(result['title'], datetime.datetime.strptime(result['release_date'], '%Y-%m-%d').year.numerator)
+    return jsonify(matching_results=results[:8])
 
 
 @app.route('/')

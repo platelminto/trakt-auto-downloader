@@ -31,37 +31,44 @@
 <!--		</div>-->
 <!--	</body>-->
 
-<head>
-    <link href="//code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="Stylesheet"/>
-<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
-<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js" ></script>
-
 <script type="text/javascript">
-$(function() {
-    $("#autocomplete").autocomplete({
-        source:function(request, response) {
-            $.getJSON("{{url_for('autocomplete')}}",{
-                q: request.term, // in flask, "q" will be the argument to look for using request.args
-            }, function(data) {
-                response(data.matching_results.map(x => x['title'])); // matching_results from jsonify
-            });
-        },
-        minLength: 2,
-        select: function(event, ui) {
-            //console.log(ui.item.value); // not in your question, but might help later
-            //window.location.replace('submitted?title=' + ui.item.value)
-        },
+    $(function () {
+        $("#autocomplete").autocomplete({
+            source: function (request, response) {
+                $.getJSON("{{url_for('autocomplete')}}", {
+                    q: request.term, // in flask, "q" will be the argument to look for using request.args
+                }, function (data) {
+                    response(data.matching_results); // matching_results from jsonify
+                    // for (var i = 0; i < data.matching_results.length; i++) {
+                    //     let uls = $("#ui-id-1").children("li");
+                    //     uls.append('<div>' + data.matching_results[i]['overview'] + '</div>')
+                    // }
+                });
+            },
+            minLength: 2,
+            select: function(event, ui) {
+                console.log(ui.item);
+                $.redirect("/handle_data", ui.item);
+            },
+        });
     });
-})
+    // $( ".selector" ).autocomplete({
+    //     open: function( event, ui ) {
+    //         console.log("ay");
+    //     }
+    // });
+    //
+    // $( ".selector" ).on( "autocompleteopen", function( event, ui ) {
+    //         console.log("hey");
+    //         // highlight the mouseover target
+    //         event.target.style.color = "orange";
+    // });
 
 </script>
-</head>
-<body>
-    <div>
-        <form action="{{ url_for('handle_data') }}" method="POST">
-        <input name="autocomplete" type="text" id="autocomplete" class="form-control input-lg"/>
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-</body>
+
+<div>
+    <label for="autocomplete">Search for a movie: </label>
+    <input name="autocomplete" type="text" id="autocomplete" class="form-control"/>
+</div>
+<p id="description"></p>
 {% endblock %}
