@@ -48,8 +48,9 @@ $(function() {
         },
         minLength: 2,
         select: function(event, ui) {
-            console.log(ui.item.value); // not in your question, but might help later
-        }
+            //console.log(ui.item.value); // not in your question, but might help later
+            //window.location.replace('submitted?title=' + ui.item.value)
+        },
     });
 })
 
@@ -57,7 +58,10 @@ $(function() {
 </head>
 <body>
     <div>
+        <form action="{{ url_for('handle_data') }}" method="POST">
         <input name="autocomplete" type="text" id="autocomplete" class="form-control input-lg"/>
+            <button type="submit">Submit</button>
+        </form>
     </div>
 </body>
 {% endblock %}
