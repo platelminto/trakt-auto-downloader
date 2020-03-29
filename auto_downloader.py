@@ -81,12 +81,14 @@ def add_and_get_torrent(title):
     return get_torrent_name(add_magnet(magnet_to_add))
 
 
+# Generate filters: first one with all the options, then without the last one, then without the last 2, etc.
 def generate_filters(named_filters):
     filters = list()
     for index, _ in enumerate(named_filters):
         filter = dict()
         for filter_name, filter_value in named_filters[0:len(named_filters)-index]:
-            filter.setdefault(filter_name, []).append(filter_value)
+            if filter_value:
+                filter.setdefault(filter_name, []).append(filter_value)
         filters.append(filter)
 
     return filters
