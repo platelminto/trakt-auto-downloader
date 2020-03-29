@@ -37,34 +37,24 @@ def sanitise(s):
     return s.replace('.', '').replace('\'', '')
 
 
-def search_torrent(searches, media_type, options=5, use_all_scrapers=False):
+def search_torrent(searches, media_type, options=5):
     sanitised_queries = list()
     for query in searches:
         sanitised_queries.append(sanitise(query))
     results = list()
-    if not use_all_scrapers:
-        for scraper in SCRAPER_PREFERENCE:
-            try:
-                results.extend(scraper.scrape(sanitised_queries, media_type, options))
-            except LookupError:
-                logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
-                print('{} had no results for {}'.format(scraper.name, sanitised_queries))
-            except requests.exceptions.Timeout:
-                logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
-                print('{} timed out for {}'.format(scraper.name, sanitised_queries))
-    else:
-        for scraper in SCRAPER_PREFERENCE:
-            try:
-                current_results = scraper.scrape(sanitised_queries, media_type, options)
-                for result in current_results:
-                    if result.title.lower().strip() not in [r.title.lower().strip() for r in results]:
-                        results.append(result)
-            except LookupError:
-                logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
-                print('{} had no results for {}'.format(scraper.name, sanitised_queries))
-            except requests.exceptions.Timeout:
-                logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
-                print('{} timed out for {}'.format(scraper.name, sanitised_queries))
+
+    for scraper in SCRAPER_PREFERENCE:
+        try:
+            current_results = scraper.scrape(sanitised_queries, media_type, options)
+            for result in current_results:
+                if result.title.lower().strip() not in [r.title.lower().strip() for r in results]:
+                    results.append(result)
+        except LookupError:
+            logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
+            print('{} had no results for {}'.format(scraper.name, sanitised_queries))
+        except requests.exceptions.Timeout:
+            logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
+            print('{} timed out for {}'.format(scraper.name, sanitised_queries))
 
     if len(results) > 0:
         results = list(filter(lambda result: result.title != '', results))
