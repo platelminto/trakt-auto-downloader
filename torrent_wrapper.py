@@ -37,7 +37,7 @@ def sanitise(s):
     return s.replace('.', '').replace('\'', '')
 
 
-def search_torrent(searches, media_type, options=5):
+def search_torrent(searches, options=5):
     sanitised_queries = list()
     for query in searches:
         sanitised_queries.append(sanitise(query))
@@ -45,7 +45,7 @@ def search_torrent(searches, media_type, options=5):
 
     for scraper in SCRAPER_PREFERENCE:
         try:
-            current_results = scraper.scrape(sanitised_queries, media_type, options)
+            current_results = scraper.scrape(sanitised_queries, options)
             for result in current_results:
                 if result.title.lower().strip() not in [r.title.lower().strip() for r in results]:
                     results.append(result)

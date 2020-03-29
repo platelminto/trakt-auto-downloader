@@ -8,7 +8,6 @@ import PTN
 from dotenv import load_dotenv
 
 from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
-from media_type import MediaType
 
 # cron every hour
 
@@ -68,7 +67,7 @@ def main():
 
 
 def add_and_get_torrent(title):
-    results = search_torrent([title], MediaType.EPISODE, 15, use_all_scrapers=True)
+    results = search_torrent([title], 15)
     filters = generate_filters([('seeders', MINIMUM_SEEDERS), ('title', PREFERRED_QUALITY), ('title', PREFERRED_CODEC)])
     magnet_to_add = results[0].magnet
 

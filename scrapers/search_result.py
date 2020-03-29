@@ -21,9 +21,3 @@ class SearchResult:
 
     def __repr__(self):
         return '{}'.format(self.title)
-
-
-def torrent_is_episode(torrent_title):
-    info = PTN.parse(torrent_title)
-
-    return 'episode' in info

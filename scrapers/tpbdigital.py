@@ -1,13 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
 
-from media_type import MediaType
-from scrapers.search_result import SearchResult, torrent_is_episode
+from scrapers.search_result import SearchResult
 
 name = 'tpb.digital'
 
 
-def scrape(searches, media_type=MediaType.ANY, options=5, timeout=6):
+def scrape(searches, options=5, timeout=6):
     results = list()
 
     for title in searches:
@@ -60,14 +59,6 @@ def scrape(searches, media_type=MediaType.ANY, options=5, timeout=6):
     if len(results) < 1 or results[0].title == '':
         raise LookupError
 
-    if media_type == MediaType.TV_SHOW or media_type == MediaType.SEASON:
-        results = [result for result in results if not torrent_is_episode(result.title)]
-
     results.sort(key=lambda result: result.seeders, reverse=True)
 
     return results[:options]
-
-
-if __name__ == '__main__':
-    #search = input('Search for: ')
-    print(scrape(['family guy', 'family guy complete'], media_type=MediaType.TV_SHOW))
