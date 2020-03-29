@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sqlite3
+import traceback
 
 import feedparser
 
@@ -16,7 +17,7 @@ config.read(os.environ['CONFIG_PATH'])
 FEED_URL = config['TRAKT']['FEED_URL']
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
-LOG_PATH = config['TV_SHOWS']['LOG_PATH']
+LOG_PATH = config['TV_PATHS']['LOGS']
 
 
 def main():
@@ -36,15 +37,16 @@ def main():
             c.execute('REPLACE INTO releases VALUES(?, ?, ?, ?, ?, ?, ?)'
                       , [item['id'], title, season, episode, e_name,
                          format_search(title, season, episode), item['published']])
-        except RuntimeError as e:
-            logging.error('Failed {}: {}'.format(item, e))
+        except Exception as e:
+            logging.error('{}'.format(traceback.format_exc()))
+            traceback.print_exc()
 
     db.commit()
     db.close()
 
 
 def format_search(title, season, episode):
-    return '{} s{:02}e{:02}'.format(title, season, episode)\
+    return '{} s{:02}e{:02}'.format(title, season, episode) \
         .replace('.', '').replace('\'', '')
 
 
@@ -53,5 +55,6 @@ if __name__ == '__main__':
                         level=logging.INFO, format='%(asctime)s %(message)s')
     try:
         main()
-    except RuntimeError as e:
-        logging.error('{}'.format(e))
+    except Exception as e:
+        logging.error('{}'.format(traceback.format_exc()))
+        traceback.print_exc()

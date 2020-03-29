@@ -18,14 +18,14 @@ load_dotenv()
 config = configparser.ConfigParser()
 config.read(os.environ['CONFIG_PATH'])
 
-AIRED_DELAY = config['AUTO_DOWNLOADER']['AIRED_DELAY']
-MINIMUM_SEEDERS = int(config['AUTO_DOWNLOADER']['MINIMUM_SEEDERS'])
-PREFERRED_QUALITY = config['AUTO_DOWNLOADER']['PREFERRED_QUALITY']
-PREFERRED_CODEC = config['AUTO_DOWNLOADER']['PREFERRED_CODEC']
+AIRED_DELAY = config['DOWNLOAD_REQUIREMENTS']['AIRED_DELAY']
+MINIMUM_SEEDERS = int(config['DOWNLOAD_REQUIREMENTS']['MINIMUM_SEEDERS'])
+PREFERRED_QUALITY = config['DOWNLOAD_REQUIREMENTS']['PREFERRED_QUALITY']
+PREFERRED_CODEC = config['DOWNLOAD_REQUIREMENTS']['PREFERRED_CODEC']
 
 DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
-LOG_PATH = config['TV_SHOWS']['LOG_PATH']
+LOG_PATH = config['TV_PATHS']['LOGS']
 
 
 def main():
@@ -78,7 +78,7 @@ def add_and_get_torrent(title):
             magnet_to_add = filtered_results[0].magnet
             break
 
-    return get_torrent_name(add_magnet(magnet_to_add, MediaType.EPISODE))
+    return get_torrent_name(add_magnet(magnet_to_add))
 
 
 def generate_filters(named_filters):
@@ -139,5 +139,6 @@ if __name__ == '__main__':
                         level=logging.INFO, format='%(asctime)s %(message)s')
     try:
         main()
-    except RuntimeError as e:
+    except Exception as e:
         logging.error('{}'.format(traceback.format_exc()))
+        traceback.print_exc()

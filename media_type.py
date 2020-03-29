@@ -2,8 +2,7 @@ from enum import Enum
 
 
 class MediaType(Enum):
-    MOVIE = 1
-    EPISODE = 2
-    SEASON = 3
-    TV_SHOW = 4
-    ANY = 5
+    EPISODE = 1
+    SEASON = 2
+    TV_SHOW = 3
+    ANY = 4
