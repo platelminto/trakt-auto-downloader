@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sqlite3
+import sys
 import traceback
 
 import feedparser
@@ -38,8 +39,8 @@ def main():
                       , [item['id'], title, season, episode, e_name,
                          format_search(title, season, episode), item['published']])
         except Exception as e:
-            logging.error('{}'.format(traceback.format_exc()))
-            traceback.print_exc()
+            logging.error('{}: {}'.format(traceback.format_exc(), item))
+            print('{}: {}'.format(traceback.format_exc(), item), file=sys.stderr)
 
     db.commit()
     db.close()
