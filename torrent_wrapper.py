@@ -5,13 +5,11 @@ import time
 
 import requests
 import transmissionrpc
-from dotenv import load_dotenv
 
 from scrapers import tpbdigital, _1377x
 
-load_dotenv()
 config = configparser.ConfigParser()
-config.read(os.environ['CONFIG_PATH'])
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
 COMPLETED_PATH = config['TV_PATHS']['COMPLETED']
 

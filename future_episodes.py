@@ -9,16 +9,14 @@ import traceback
 import feedparser
 
 # cron daily (could be even rare tbh)
-from dotenv import load_dotenv
 
-load_dotenv()
 config = configparser.ConfigParser()
-config.read(os.environ['CONFIG_PATH'])
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
 FEED_URL = config['TRAKT']['FEED_URL']
-DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
 
-LOG_PATH = config['TV_PATHS']['LOGS']
+DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+LOG_PATH = os.path.join(os.path.dirname(__file__), 'shows.log')
 
 
 def main():

@@ -5,7 +5,6 @@ import sqlite3
 import traceback
 
 import PTN
-from dotenv import load_dotenv
 
 from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
 
@@ -13,18 +12,16 @@ from torrent_wrapper import add_magnet, get_torrent_name, search_torrent
 
 debug = False
 
-load_dotenv()
 config = configparser.ConfigParser()
-config.read(os.environ['CONFIG_PATH'])
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
 AIRED_DELAY = config['DOWNLOAD_REQUIREMENTS']['AIRED_DELAY']
 MINIMUM_SEEDERS = int(config['DOWNLOAD_REQUIREMENTS']['MINIMUM_SEEDERS'])
 PREFERRED_QUALITY = config['DOWNLOAD_REQUIREMENTS']['PREFERRED_QUALITY']
 PREFERRED_CODEC = config['DOWNLOAD_REQUIREMENTS']['PREFERRED_CODEC']
 
-DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
-
-LOG_PATH = config['TV_PATHS']['LOGS']
+DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+LOG_PATH = os.path.join(os.path.dirname(__file__), 'shows.log')
 
 
 def main():

@@ -9,20 +9,17 @@ import configparser
 import traceback
 
 import PTN
-from dotenv import load_dotenv
 
 from torrent_wrapper import transmission
 
-load_dotenv()
 config = configparser.ConfigParser()
-config.read(os.environ['CONFIG_PATH'])
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-TV_PATH = config['TV_PATHS']['MAIN']
-TV_COMPLETED_PATH = config['TV_PATHS']['COMPLETED']
+MAIN_PATH = config['TV_PATHS']['MAIN']
+COMPLETED_PATH = config['TV_PATHS']['COMPLETED']
 
-DATABASE_PATH = config['DEFAULT']['DATABASE_PATH']
-
-TV_LOG_PATH = config['TV_PATHS']['LOGS']
+DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+LOG_PATH = os.path.join(os.path.dirname(__file__), 'shows.log')
 
 
 def remove_completed_torrents():
@@ -34,10 +31,8 @@ def remove_completed_torrents():
 def main():
     path = sys.argv[1]
     filename = sys.argv[2]
-    # path = '/home/platelminto/Documents/tv/completed tv shows/'
-    # filename = 'star.trek.picard.s01e04.720p.webrip.x264-xlf[eztv].mkv'
 
-    logging.basicConfig(filename=TV_LOG_PATH, filemode='a+',
+    logging.basicConfig(filename=LOG_PATH, filemode='a+',
                         level=logging.INFO, format='%(asctime)s %(message)s')
     show, season, episode = '', 0, 0
     try:
@@ -61,14 +56,14 @@ def main():
 
             found, show_folder = False, ''
 
-            for cur_show in os.listdir(TV_PATH):
+            for cur_show in os.listdir(MAIN_PATH):
                 if cur_show.lower() == show.lower():
-                    show_folder = os.path.join(TV_PATH, cur_show)
+                    show_folder = os.path.join(MAIN_PATH, cur_show)
                     found = True
                     break
 
             if not found:
-                show_folder = os.path.join(TV_PATH, show)
+                show_folder = os.path.join(MAIN_PATH, show)
                 os.mkdir(show_folder)
 
             found, season_folder = False, ''
@@ -94,7 +89,7 @@ def main():
         db.close()
         # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
         # If some videos weren't moved by above, don't delete the folder
-        if path != TV_COMPLETED_PATH and len(find_videos(path, '')[1]) == 0:
+        if path != COMPLETED_PATH and len(find_videos(path, '')[1]) == 0:
             shutil.rmtree(path)
 
     except TypeError:
