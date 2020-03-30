@@ -23,15 +23,9 @@ In addition to these, `parse-torrent-name` must be installed separately using:
 
 **Trakt**: You need a [Trakt account](https://trakt.tv/) that follows the TV shows you want to download new episodes of (if you're not sure, check that they show up in your [calendar](https://trakt.tv/calendars/my/shows)). You also need [VIP](https://trakt.tv/vip/) so you can get the appriopriate RSS feed (see how [here](https://blog.trakt.tv/ical-and-rss-feeds-f2028da560e3)).
 
-Additionally, before starting, you must replace the values in `.env` and `config.ini` with your own:
-### .env
-- `CONFIG_PATH`: Path to the `config.ini` file. (_Defaults to within the project directory_)
-
-### config.ini
+Additionally, before starting, you must replace the values in `config.ini` with your own:
 
 #### [DEFAULT]
-
-- `DATABASE_PATH`: Path to the `tv_info.db` sqlite3 database. (_Defaults to within the project directory_)
 
 - `SCRAPER_PREFERENCE`: Order in which to use the available scrapers.
 
@@ -42,8 +36,6 @@ Additionally, before starting, you must replace the values in `.env` and `config
 - `MAIN`: Path to store the renamed, organised episodes.
 
 - `COMPLETED`: Path to where completed torrents should be stored (before they are renamed and moved to `MAIN`).
-
-- `LOGS`: Path to logging file. (_Defaults to within the project directory_)
 
 #### [TRANSMSSION]
 
