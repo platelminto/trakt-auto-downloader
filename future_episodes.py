@@ -25,6 +25,13 @@ def main():
 
     c = db.cursor()
 
+    # Episodes that haven't aired yet might be removed from the releases list if the
+    # episode gets indefinitely delayed, so we remove all unaired episodes. Aired episodes
+    # must stay as the RSS feed might get rid of them before we download them.
+    c.execute('''DELETE FROM releases
+                 WHERE datetime(airs) >= datetime('now')''')
+    db.commit()
+
     for item in feed['items']:
         try:
             info = re.split(' ([0-9]+x[0-9]+ )', item['title'])
