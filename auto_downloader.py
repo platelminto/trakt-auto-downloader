@@ -64,7 +64,7 @@ def main():
 
 
 def add_and_get_torrent(title):
-    results = search_torrent([title], 15)
+    results = search_torrent(title, 15)
     filters = generate_filters([('seeders', MINIMUM_SEEDERS), ('title', PREFERRED_QUALITY), ('title', PREFERRED_CODEC)])
     magnet_to_add = results[0].magnet
 

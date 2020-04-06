@@ -35,32 +35,30 @@ def sanitise(s):
     return s.replace('.', '').replace('\'', '')
 
 
-def search_torrent(searches, options=5):
-    sanitised_queries = list()
-    for query in searches:
-        sanitised_queries.append(sanitise(query))
+def search_torrent(search, options=5):
+    search = sanitise(search)
     results = list()
 
     for scraper in SCRAPER_PREFERENCE:
         try:
-            current_results = scraper.scrape(sanitised_queries, options)
+            current_results = scraper.scrape(search, options)
             for result in current_results:
                 if result.title.lower().strip() not in [r.title.lower().strip() for r in results]:
                     results.append(result)
         except LookupError:
-            logging.warning('{} had no results for {}'.format(scraper.name, sanitised_queries))
-            print('{} had no results for {}'.format(scraper.name, sanitised_queries))
+            logging.warning('{} had no results for {}'.format(scraper.name, search))
+            print('{} had no results for {}'.format(scraper.name, search))
         except requests.exceptions.Timeout:
-            logging.warning('{} timed out for {}'.format(scraper.name, sanitised_queries))
-            print('{} timed out for {}'.format(scraper.name, sanitised_queries))
+            logging.warning('{} timed out for {}'.format(scraper.name, search))
+            print('{} timed out for {}'.format(scraper.name, search))
 
     if len(results) > 0:
         results = list(filter(lambda result: result.title != '', results))
         results.sort(key=lambda result: result.seeders, reverse=True)
         return results[:options]
 
-    logging.error('no magnets found for {}'.format(sanitised_queries))
-    print('no magnets found for {}'.format(sanitised_queries))
+    logging.error('no magnets found for {}'.format(search))
+    print('no magnets found for {}'.format(search))
     raise LookupError
 
 
