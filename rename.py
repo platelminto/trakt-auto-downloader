@@ -29,75 +29,80 @@ def remove_completed_torrents():
 
 
 def main():
-    path = sys.argv[1]
-    filename = sys.argv[2]
+    db = sqlite3.connect(DATABASE_PATH)
+    c = db.cursor()
 
-    logging.basicConfig(filename=LOG_PATH, filemode='a+',
-                        level=logging.INFO, format='%(asctime)s %(message)s')
-    show, season, episode = '', 0, 0
-    try:
-        path, filepaths, is_folder = find_videos(path, filename)
-        episodes = list()
-        if is_folder:
-            episodes = get_episode_details(path)
-        else:
-            episodes.append(get_episode_details(filename)[0])
+    c.execute('''SELECT DISTINCT torrent_name FROM episode_info''')
 
-        db = sqlite3.connect(DATABASE_PATH)
-        c = db.cursor()
+    completed_torrents_filenames = list()
 
-        for show, season, episode, title, torrent_name in episodes:
-            try:
-                # Find the file that matches this season & episode
-                filepath = [fp for fp in filepaths if (season, episode) == parsed_info(fp)][0]
-            except IndexError:
-                continue
-            rename = '{}x{:02d} - {}{}'.format(season, episode, title, os.path.splitext(filepath)[1])
+    for result in c.fetchall():
+        torrent_name = result[0]
+        if torrent_name in os.listdir(COMPLETED_PATH):
+            completed_torrents_filenames.append(torrent_name)
 
-            found, show_folder = False, ''
+    for filename in completed_torrents_filenames:
+        show, season, episode = '', 0, 0
+        try:
+            path, filepaths, is_folder = find_videos(COMPLETED_PATH, filename)
+            episodes = list()
+            if is_folder:
+                episodes = get_episode_details(path)
+            else:
+                episodes.append(get_episode_details(filename)[0])
 
-            for cur_show in os.listdir(MAIN_PATH):
-                if cur_show.lower() == show.lower():
-                    show_folder = os.path.join(MAIN_PATH, cur_show)
-                    found = True
-                    break
+            for show, season, episode, title, torrent_name in episodes:
+                try:
+                    # Find the file that matches this season & episode
+                    filepath = [fp for fp in filepaths if (season, episode) == parsed_info(fp)][0]
+                except IndexError:
+                    continue
+                rename = '{}x{:02d} - {}{}'.format(season, episode, title, os.path.splitext(filepath)[1])
 
-            if not found:
-                show_folder = os.path.join(MAIN_PATH, show)
-                os.mkdir(show_folder)
+                found, show_folder = False, ''
 
-            found, season_folder = False, ''
+                for cur_show in os.listdir(MAIN_PATH):
+                    if cur_show.lower() == show.lower():
+                        show_folder = os.path.join(MAIN_PATH, cur_show)
+                        found = True
+                        break
 
-            for s in os.listdir(show_folder):
-                if s == 's{}'.format(season):
-                    season_folder = os.path.join(show_folder, s)
-                    found = True
-                    break
+                if not found:
+                    show_folder = os.path.join(MAIN_PATH, show)
+                    os.mkdir(show_folder)
 
-            if not found:
-                season_folder = os.path.join(show_folder, 's{}'.format(season))
-                os.mkdir(season_folder)
+                found, season_folder = False, ''
 
-            shutil.move(filepath, os.path.join(season_folder, rename))
-            c.execute('''DELETE FROM episode_info
-                         WHERE show = ? AND season = ? AND episode = ?
-                         AND title = ?
-                         ''', (show, season, episode, title,))
-            db.commit()
-            logging.info('Added {} as {} in {}'.format(os.path.basename(os.path.normpath(filepath)), rename, season_folder))
+                for s in os.listdir(show_folder):
+                    if s == 's{}'.format(season):
+                        season_folder = os.path.join(show_folder, s)
+                        found = True
+                        break
 
-        db.close()
-        # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
-        # If some videos weren't moved by above, don't delete the folder
-        if path != COMPLETED_PATH and len(find_videos(path, '')[1]) == 0:
-            shutil.rmtree(path)
+                if not found:
+                    season_folder = os.path.join(show_folder, 's{}'.format(season))
+                    os.mkdir(season_folder)
 
-    except TypeError:
-        pass
-    except Exception as e:
-        print('{} s{}e{}: {}'.format(show, season, episode, traceback.format_exc()), file=sys.stderr)
-        logging.error('{} s{}e{}: {}'.format(show, season, episode, traceback.format_exc()))
+                shutil.move(filepath, os.path.join(season_folder, rename))
+                c.execute('''DELETE FROM episode_info
+                             WHERE show = ? AND season = ? AND episode = ?
+                             AND title = ?
+                             ''', (show, season, episode, title,))
+                db.commit()
+                logging.info('Added {} as {} in {}'.format(os.path.basename(os.path.normpath(filepath)), rename, season_folder))
 
+            # If was standalone file the overall folder is COMPLETED_PATH and we have to remove nothing
+            # If some videos weren't moved by above, don't delete the folder
+            if path != COMPLETED_PATH and len(find_videos(path, '')[1]) == 0:
+                shutil.rmtree(path)
+
+        except TypeError:
+            pass
+        except Exception as e:
+            print('{} s{}e{}: {}'.format(show, season, episode, traceback.format_exc()), file=sys.stderr)
+            logging.error('{} s{}e{}: {}'.format(show, season, episode, traceback.format_exc()))
+
+    db.close()
     remove_completed_torrents()
 
 
@@ -150,6 +155,8 @@ def find_videos(path, filename):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename=LOG_PATH, filemode='a+',
+                        level=logging.INFO, format='%(asctime)s %(message)s')
     try:
         main()
     except Exception as error:
