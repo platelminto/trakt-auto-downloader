@@ -8,8 +8,6 @@ import traceback
 
 import feedparser
 
-# cron daily (could be even rare tbh)
-
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 

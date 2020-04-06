@@ -34,8 +34,12 @@ def main():
 
     c.execute('''SELECT DISTINCT torrent_name FROM episode_info''')
 
-    completed_torrents_filenames = list()
+    if not os.path.exists(COMPLETED_PATH):
+        os.mkdir(COMPLETED_PATH)
+    if not os.path.exists(MAIN_PATH):
+        os.mkdir(MAIN_PATH)
 
+    completed_torrents_filenames = list()
     for result in c.fetchall():
         torrent_name = result[0]
         if torrent_name in os.listdir(COMPLETED_PATH):
