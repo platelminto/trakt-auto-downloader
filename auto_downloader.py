@@ -28,16 +28,13 @@ def main():
     db = sqlite3.connect(DATABASE_PATH)
     c = db.cursor()
 
-    rows = c.execute('''SELECT search FROM releases
+    rows = c.execute('''SELECT search, show, season, episode, airs FROM releases
                         WHERE datetime(airs) <= datetime('now', ?)
                         ''', ('-' + AIRED_DELAY,))
 
-    searches = list()
-    for row in rows:
-        searches.append(row[0])
-
-    for search in searches:
+    for row in rows.fetchall():
         try:
+            search, show, season, episode, aired = row
             torrent_name = add_and_get_torrent(search)
 
             c.execute('''INSERT OR IGNORE INTO episode_info 
@@ -48,6 +45,8 @@ def main():
                 c.execute('''DELETE FROM releases
                              WHERE search = ?
                              ''', (search,))
+                c.execute('''INSERT INTO added VALUES(?, ?, ?, ?)''',
+                          [show, season, episode, aired])
         except LookupError:
             pass
 

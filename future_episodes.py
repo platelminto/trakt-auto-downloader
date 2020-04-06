@@ -28,6 +28,8 @@ def main():
     # must stay as the RSS feed might get rid of them before we download them.
     c.execute('''DELETE FROM releases
                  WHERE datetime(airs) >= datetime('now')''')
+    c.execute('''DELETE FROM added
+                 WHERE datetime(aired) <= datetime('now', '-7 days')''')
     db.commit()
 
     for item in feed['items']:
@@ -44,6 +46,10 @@ def main():
         except Exception as e:
             logging.error('{}: {}'.format(traceback.format_exc(), item))
             print('{}: {}'.format(traceback.format_exc(), item), file=sys.stderr)
+
+    c.execute('''DELETE FROM releases WHERE
+                 (show, season, episode) IN (
+                 SELECT show, season, episode FROM added)''')
 
     db.commit()
     db.close()
