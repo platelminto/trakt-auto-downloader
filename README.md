@@ -17,9 +17,7 @@ In addition to these, `parse-torrent-name` must be installed separately using:
 
 ## Set-up
 
-**Transmission**: You must have the [Transmission torrent client](https://transmissionbt.com/) downloaded and always running, and enable **Allow remote access** in the settings, matching the appropriate values with the `[TRANSMISSION]` values in `config.ini` (see below). Under **Downloads**, enable 'Call script when torrent is completed' and set it to `rename.sh`.
-
-**`rename.sh`**: Edit 'rename.py' to its actual full path and, if running in a `virtualenv`, edit 'python3' to the correct python binary.
+**Transmission**: You must have the [Transmission torrent client](https://transmissionbt.com/) downloaded and always running, and enable **Allow remote access** in the settings, matching the appropriate values with the `[TRANSMISSION]` values in `config.ini` (see below).
 
 **Trakt**: You need a [Trakt account](https://trakt.tv/) that follows the TV shows you want to download new episodes of (if you're not sure, check that they show up in your [calendar](https://trakt.tv/calendars/my/shows)). You also need [VIP](https://trakt.tv/vip/) so you can get the appriopriate RSS feed (see how [here](https://blog.trakt.tv/ical-and-rss-feeds-f2028da560e3)).
 
@@ -66,7 +64,8 @@ Additionally, before starting, you must replace the values in `config.ini` with 
 
 ## Executing
 
-Both `auto_downloader.py` and `future_episodes.py` need to be ran regularly, and can be put in a bash script similar to `rename.sh`. Then schedule them using `cron`, `systemd`, or any other timing tool.
+`auto_downloader.py`, `future_episodes.py`, and `rename.py` need to be ran regularly - you should using scheduling tools such as `cron` and `systemd` for this.
 
 - `future_episodes.py` can be run relatively rarely, as the schedule for episodes rarely changes, e.g. every day.
 - `auto_downloader.py` is what actually checks when new episodes need to be downloaded, so must run more often, e.g. every hour.
+- `rename.py` should run even more often, as it's responsible for renaming & moving the file to its final location, e.g. every 20 minutes.
