@@ -20,7 +20,11 @@ MINIMUM_SEEDERS = int(config['DOWNLOAD_REQUIREMENTS']['MINIMUM_SEEDERS'])
 PREFERRED_QUALITY = config['DOWNLOAD_REQUIREMENTS']['PREFERRED_QUALITY']
 PREFERRED_CODEC = config['DOWNLOAD_REQUIREMENTS']['PREFERRED_CODEC']
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+if os.path.exists(os.path.join(os.path.dirname(__file__), 'tv_info.mine.db')):
+    DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.mine.db')
+else:
+    DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+
 LOG_PATH = os.path.join(os.path.dirname(__file__), 'shows.log')
 
 

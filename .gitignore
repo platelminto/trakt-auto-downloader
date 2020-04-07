@@ -1,5 +1,5 @@
 .idea/
 __pycache__/
 config.ini
-tv_info.db
+tv_info.mine.db
 shows.log

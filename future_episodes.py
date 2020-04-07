@@ -13,7 +13,11 @@ config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
 FEED_URL = config['TRAKT']['FEED_URL']
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+if os.path.exists(os.path.join(os.path.dirname(__file__), 'tv_info.mine.db')):
+    DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.mine.db')
+else:
+    DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'tv_info.db')
+
 LOG_PATH = os.path.join(os.path.dirname(__file__), 'shows.log')
 
 
